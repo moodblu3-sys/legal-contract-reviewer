@@ -1,4 +1,4 @@
-# box-ai-solution-kit（日本語概要）
+# legal-contract-reviewer（日本語概要）
 
 **Box AI API** を、ガバナンス付きの業務特化ワークフローに仕立てる **MCPサーバー**。
 Boxのネイティブ機能（公式MCP / Box AI API）の「上に乗るソリューション層」を実装したリファレンス。

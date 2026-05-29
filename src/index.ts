@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(__dirname, "..", ".env"), quiet: true });
 /**
- * box-ai-solution-kit — an MCP server exposing governed Box AI workflows.
+ * legal-contract-reviewer — an MCP server exposing governed Box AI workflows.
  *
  * Transport: stdio (works with Claude Desktop, Cursor, and the MCP Inspector).
  * Each tool is a *solution operation*, not a raw API passthrough.
@@ -24,7 +24,7 @@ import {
 } from "./tools.js";
 
 const client = createBoxClient();
-const server = new McpServer({ name: "box-ai-solution-kit", version: "0.1.0" });
+const server = new McpServer({ name: "legal-contract-reviewer", version: "0.1.0" });
 
 function ok(data: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
@@ -127,4 +127,4 @@ server.registerTool(
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error("box-ai-solution-kit MCP server running on stdio");
+console.error("legal-contract-reviewer MCP server running on stdio");
