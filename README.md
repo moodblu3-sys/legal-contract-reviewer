@@ -1,4 +1,4 @@
-# box-ai-solution-kit
+# legal-contract-reviewer
 
 A **Model Context Protocol (MCP) server** that turns the **Box AI API** into governed, vertical
 document workflows — a *solution layer* on top of Box's native platform for enterprises that
@@ -37,7 +37,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). At a glance:
 MCP host (Claude / Cursor)
         │  stdio
         ▼
-box-ai-solution-kit  ──►  Box AI API  (ask / extract_structured)
+legal-contract-reviewer  ──►  Box AI API  (ask / extract_structured)
         │                 Box Content API (metadata / comments / files)
         └─ governance rules (policy-driven, not hard-coded in production)
 ```

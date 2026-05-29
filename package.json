@@ -1,10 +1,10 @@
 {
-  "name": "box-ai-solution-kit",
+  "name": "legal-contract-reviewer",
   "version": "0.1.0",
   "description": "An MCP server that orchestrates the Box AI API into governed, vertical document workflows (contract intelligence + content governance). A solution layer on top of Box's native platform for enterprises that outgrow out-of-the-box features.",
   "type": "module",
   "bin": {
-    "box-ai-solution-kit": "dist/index.js"
+    "legal-contract-reviewer": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
