@@ -1,5 +1,8 @@
 # legal-contract-reviewer
 
+> Demo screenshot placeholder: add a Claude Desktop capture of `box_extract_contract` running against
+> a Japanese contract PDF before publishing.
+
 A **Model Context Protocol (MCP) server** that turns the **Box AI API** into governed, vertical
 document workflows — a *solution layer* on top of Box's native platform for enterprises that
 outgrow out-of-the-box features.
@@ -52,15 +55,38 @@ legal-contract-reviewer  ──►  Box AI API  (ask / extract_structured)
 > For something more durable than a 60-minute token, configure **Client Credentials Grant (CCG)** and
 > authorize the app in the Admin Console. The server supports both — see `.env.template`.
 
-### 2. Run
+### 2. Configure auth
+
+For a quick demo, use a short-lived Developer Token:
+
+```bash
+cp .env.template .env
+# paste BOX_DEV_TOKEN into .env
+```
+
+For a durable CCG setup:
+
+1. In the Box Developer Console, create a Custom App with **Client Credentials Grant**.
+2. Enable the app scopes needed for reading files, Box AI, metadata, and comments.
+3. Submit/authorize the app in the Admin Console.
+4. Put `BOX_CLIENT_ID`, `BOX_CLIENT_SECRET`, and `BOX_ENTERPRISE_ID` in `.env`.
+
+With `BOX_ENTERPRISE_ID`, the server runs as the app's service account and can read files owned by or
+collaborated with that service account. If your enterprise supports act-as-user, use `BOX_USER_ID`
+instead of `BOX_ENTERPRISE_ID`.
+
+> Note: free Box Developer accounts may reject CCG act-as-user with `invalid_grant`. In that case,
+> use the enterprise/service-account mode for demos. Paid enterprise environments can enable the
+> act-as-user pattern through the normal admin authorization path.
+
+### 3. Run
 ```bash
 npm install
 npm run build
-cp .env.template .env   # paste BOX_DEV_TOKEN
 npm start               # or wire into an MCP host (below)
 ```
 
-### 3. Wire into Claude Desktop
+### 4. Wire into Claude Desktop
 Copy `claude_desktop_config.example.json` into your Claude Desktop config, fix the absolute path and
 token, and restart. Then ask Claude: *"Extract the contract fields from Box file 123, scan it for PII,
 and post a review summary."*
