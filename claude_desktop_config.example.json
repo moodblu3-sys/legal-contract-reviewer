@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "box-ai-solution-kit": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/TO/box-ai-solution-kit/dist/index.js"],
+      "env": { "BOX_DEV_TOKEN": "PASTE_YOUR_60MIN_DEV_TOKEN_HERE" }
+    }
+  }
+}

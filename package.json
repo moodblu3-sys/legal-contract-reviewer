@@ -1,0 +1,29 @@
+{
+  "name": "box-ai-solution-kit",
+  "version": "0.1.0",
+  "description": "An MCP server that orchestrates the Box AI API into governed, vertical document workflows (contract intelligence + content governance). A solution layer on top of Box's native platform for enterprises that outgrow out-of-the-box features.",
+  "type": "module",
+  "bin": {
+    "box-ai-solution-kit": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "box-typescript-sdk-gen": "^1.19.1",
+    "dotenv": "^17.4.2",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.19",
+    "typescript": "^5.9.3"
+  }
+}

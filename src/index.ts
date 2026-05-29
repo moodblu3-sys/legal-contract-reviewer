@@ -1,0 +1,130 @@
+#!/usr/bin/env node
+import { config } from "dotenv";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: resolve(__dirname, "..", ".env"), quiet: true });
+/**
+ * box-ai-solution-kit — an MCP server exposing governed Box AI workflows.
+ *
+ * Transport: stdio (works with Claude Desktop, Cursor, and the MCP Inspector).
+ * Each tool is a *solution operation*, not a raw API passthrough.
+ */
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+import { createBoxClient } from "./box.js";
+import {
+  aiAskWithCitations,
+  extractContractFields,
+  governanceScan,
+  writebackMetadata,
+  postSummaryComment,
+} from "./tools.js";
+
+const client = createBoxClient();
+const server = new McpServer({ name: "box-ai-solution-kit", version: "0.1.0" });
+
+function ok(data: unknown) {
+  return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+}
+function fail(e: unknown) {
+  const msg = e instanceof Error ? e.message : String(e);
+  return { isError: true, content: [{ type: "text" as const, text: `Error: ${msg}` }] };
+}
+
+server.registerTool(
+  "box_ai_ask",
+  {
+    title: "Ask Box AI with citations",
+    description:
+      "Answer a question grounded in one or more Box files. Returns the answer plus source citations.",
+    inputSchema: {
+      fileIds: z.array(z.string()).min(1).describe("Box file IDs to ground the answer on"),
+      question: z.string().describe("The question to answer"),
+    },
+  },
+  async ({ fileIds, question }) => {
+    try {
+      return ok(await aiAskWithCitations(client, { fileIds, question }));
+    } catch (e) {
+      return fail(e);
+    }
+  }
+);
+
+server.registerTool(
+  "box_extract_contract",
+  {
+    title: "Extract contract fields (JP)",
+    description:
+      "Extract key Japanese contract fields (相手方/契約期間/自動更新/解約予告/金額/準拠法) from a Box file via Box AI extract_structured.",
+    inputSchema: { fileId: z.string().describe("Box file ID of the contract") },
+  },
+  async ({ fileId }) => {
+    try {
+      return ok(await extractContractFields(client, { fileId }));
+    } catch (e) {
+      return fail(e);
+    }
+  }
+);
+
+server.registerTool(
+  "box_governance_scan",
+  {
+    title: "Governance / PII scan",
+    description:
+      "Scan a Box file for PII and sensitive content, then roll findings up to a risk band (none/low/medium/high).",
+    inputSchema: { fileId: z.string().describe("Box file ID to scan") },
+  },
+  async ({ fileId }) => {
+    try {
+      return ok(await governanceScan(client, { fileId }));
+    } catch (e) {
+      return fail(e);
+    }
+  }
+);
+
+server.registerTool(
+  "box_writeback_metadata",
+  {
+    title: "Write metadata back to Box",
+    description:
+      "Persist extracted/derived fields onto a Box file as enterprise metadata (auditable record).",
+    inputSchema: {
+      fileId: z.string(),
+      templateKey: z.string().describe("Enterprise metadata template key"),
+      data: z.record(z.unknown()).describe("Key/value pairs to write"),
+    },
+  },
+  async ({ fileId, templateKey, data }) => {
+    try {
+      return ok(await writebackMetadata(client, { fileId, templateKey, data }));
+    } catch (e) {
+      return fail(e);
+    }
+  }
+);
+
+server.registerTool(
+  "box_post_summary_comment",
+  {
+    title: "Post review summary as a Box comment",
+    description: "Attach a human-readable review summary to a Box file as a comment.",
+    inputSchema: { fileId: z.string(), message: z.string() },
+  },
+  async ({ fileId, message }) => {
+    try {
+      return ok(await postSummaryComment(client, { fileId, message }));
+    } catch (e) {
+      return fail(e);
+    }
+  }
+);
+
+const transport = new StdioServerTransport();
+await server.connect(transport);
+console.error("box-ai-solution-kit MCP server running on stdio");
