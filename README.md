@@ -18,7 +18,8 @@ Boxは、汎用MCPサーバーと強力なBox AI APIをすでに提供してい�
 ## デモ体験
 
 ユーザーはMCPツール名やBox file IDを意識しません。
-面接デモでは、実Slack連携ではなく、外部認証に依存しないSlack風ローカルUIで業務チャネル体験を見せます。
+実運用に近い見せ方として、Slack Appから自然文で依頼できます。
+ローカルだけで確認したい場合は、Slack風デモUIも用意しています。
 
 ```text
 Boxの sample_risky_contract.pdf を受託者の立場でレビューして
@@ -35,7 +36,56 @@ Boxの sample_risky_contract.pdf を委託者側でリスクレビューして
 内部では `box_review_contract` が呼ばれ、Box URL、ファイル名、またはfile IDから対象ファイルを解決します。
 同じ契約書でも、委託者・受託者の立場を変えてレビューできます。
 
-### Slack風デモUI
+### Slack App連携
+
+Slack Appを作成し、Botからこのサーバーのエンドポイントへリクエストを送ります。
+
+必要な環境変数：
+
+```bash
+SLACK_BOT_TOKEN=
+SLACK_SIGNING_SECRET=
+BOX_CLIENT_ID=
+BOX_CLIENT_SECRET=
+BOX_ENTERPRISE_ID=
+```
+
+起動：
+
+```bash
+npm run build
+npm run start:slack
+```
+
+Slack App側の設定：
+
+- Event Subscriptions
+  - Request URL: `https://<公開URL>/slack/events`
+  - Subscribe to bot events:
+    - `app_mention`
+    - `message.im`
+- Slash Commands
+  - Command: `/contract-review`
+  - Request URL: `https://<公開URL>/slack/commands`
+- OAuth Scopes
+  - `app_mentions:read`
+  - `chat:write`
+  - `im:history`
+
+ローカルで動かす場合は、ngrokやCloudflare Tunnelなどで `http://localhost:3000` を一時公開します。
+Slackからのリクエストは `SLACK_SIGNING_SECRET` で検証します。
+
+Slackでの依頼例：
+
+```text
+@契約レビューBot Boxの sample_risky_contract.pdf を受託者の立場でレビューして
+```
+
+```text
+/contract-review Boxの sample_risky_contract.pdf を委託者側でリスクレビューして
+```
+
+### Slack風デモUI（ローカル確認用）
 
 ```bash
 npm run build
@@ -44,7 +94,7 @@ BOX_ENV_PATH=/path/to/.env npm run demo:slack
 
 ブラウザで `http://localhost:4173` を開きます。
 UIだけSlack風にしており、裏側では本物のBox AI APIを呼び出します。
-本番ではSlack AppやTeams Botに置き換えられる構成です。
+Slack App設定を作る前の確認に使います。
 
 ## 主な機能
 
