@@ -14,6 +14,7 @@ const port = Number(process.env.PORT ?? 3000);
 const signingSecret = process.env.SLACK_SIGNING_SECRET;
 const botToken = process.env.SLACK_BOT_TOKEN;
 const skipSignature = process.env.SLACK_SKIP_SIGNATURE === "true";
+const defaultContractFileName = process.env.DEFAULT_CONTRACT_FILE_NAME ?? "sample_risky_contract.pdf";
 
 type ReviewRequest = {
   text: string;
@@ -94,7 +95,8 @@ function parseReviewText(text: string) {
         ? "受託者"
         : "受託者";
   const boxUrl = cleaned.match(/https?:\/\/\S*box\S*/i)?.[0]?.replace(/[)、）\].。]+$/, "");
-  const fileName = cleaned.match(/[^\s"'`「」]+\.pdf/i)?.[0];
+  const explicitFileName = cleaned.match(/[^\s"'`「」]+\.pdf/i)?.[0];
+  const fileName = explicitFileName ?? defaultContractFileName;
   return { cleaned, standpoint, boxUrl, fileName };
 }
 

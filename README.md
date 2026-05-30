@@ -78,11 +78,18 @@ Slackからのリクエストは `SLACK_SIGNING_SECRET` で検証します。
 Slackでの依頼例：
 
 ```text
-@契約レビューBot Boxの sample_risky_contract.pdf を受託者の立場でレビューして
+@契約レビューBot この契約書、受託者側で危ない条項を見て
 ```
 
 ```text
-/contract-review Boxの sample_risky_contract.pdf を委託者側でリスクレビューして
+@契約レビューBot 委託者側でリスクになりそうなところを見て
+```
+
+デモでは、ファイル名やBox URLを書かない場合でも `sample_risky_contract.pdf` を既定のレビュー対象として使います。
+既定ファイルを変える場合は `DEFAULT_CONTRACT_FILE_NAME` を設定します。
+
+```bash
+DEFAULT_CONTRACT_FILE_NAME=sample_risky_contract.pdf
 ```
 
 ### Slack風デモUI（ローカル確認用）
