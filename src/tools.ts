@@ -85,7 +85,7 @@ async function resolveContractFile(
 }
 
 /** Fetch the plain-text representation of a Box file so we can scan / cite it locally. */
-async function getFileText(client: BoxClient, fileId: string): Promise<string> {
+export async function getFileText(client: BoxClient, fileId: string): Promise<string> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const file = await client.files.getFileById(fileId, {
       queryParams: { fields: ["representations"] },
