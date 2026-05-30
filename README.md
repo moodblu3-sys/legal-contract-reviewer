@@ -1,109 +1,227 @@
 # legal-contract-reviewer
 
-> Demo screenshot placeholder: add a Claude Desktop capture of `box_extract_contract` running against
-> a Japanese contract PDF before publishing.
+> デモ画像プレースホルダ：Claude Desktopで `Boxの sample_risky_contract.pdf を受託者の立場でレビューして` と依頼し、契約リスクレビューが返る画面を掲載予定。
 
-A **Model Context Protocol (MCP) server** that turns the **Box AI API** into governed, vertical
-document workflows — a *solution layer* on top of Box's native platform for enterprises that
-outgrow out-of-the-box features.
+**Box AI API** を使い、日本語契約書を法務観点でレビューする **MCPサーバー**。
+Box公式MCPやBox AI APIを置き換えるものではなく、その上に乗る「業務特化のソリューション層」として実装したリファレンスです。
 
-> **Why this exists.** Box already ships an excellent generic MCP server and a powerful Box AI API.
-> Where enterprise customers — especially in regulated industries — outgrow the native features is in
-> *governed, business-specific workflows*: contract intelligence, compliance tagging, and audit trails
-> that map to a data-classification policy. This project demonstrates how to compose Box's own
-> primitives into that solution layer, and expose it through MCP so it drops straight into Claude,
-> Cursor, or any MCP host.
+本プロジェクトはポートフォリオ兼リファレンス実装であり、Box公式製品ではありません。
 
-This is a portfolio / reference implementation, not a Box product.
+## ねらい
 
-## What it does
+Boxは、汎用MCPサーバーと強力なBox AI APIをすでに提供しています。
+一方、エンタープライズ顧客が実務で必要とするのは、契約レビュー、リスク分類、監査証跡、メタデータ反映といった業務プロセスに沿った体験です。
 
-Each tool is a **solution operation**, not a raw API passthrough:
+このプロジェクトでは、契約書本文を外部LLMに出さず、Box AIを使ってBox境界内で処理する構成を取ります。
+日本のエンタープライズ利用を想定し、個人情報・秘密情報・契約リスクを扱う前提で、ガバナンスを重視しています。
 
-| Tool | What it does | Box primitive used |
-|------|--------------|--------------------|
-| `box_ai_ask` | Answers a question grounded in one or more Box files, **with citations** | Box AI `/ai/ask` |
-| `box_extract_contract` | Extracts key **Japanese** contract fields (counterparty, term, auto-renewal, termination notice, amount, governing law) | Box AI `/ai/extract_structured` |
-| `box_governance_scan` | Scans content for PII / sensitive markers and rolls findings up to a **risk band** | text representation + policy rules |
-| `box_writeback_metadata` | Persists extracted/derived fields back onto the file as **enterprise metadata** (auditable record) | Box Metadata API |
-| `box_post_summary_comment` | Attaches a human-readable review summary to the file as a **comment** (in-context review trail) | Box Comments API |
+## デモ体験
 
-Chained together by an agent, these implement an end-to-end **"contract intake → review → govern"**
-workflow: extract the key terms, scan for sensitive data, write the structured result back as metadata,
-and leave a reviewer-facing summary comment — all inside Box, all auditable.
+ユーザーはMCPツール名やBox file IDを意識しません。
+実運用に近い見せ方として、Slack Appから自然文で依頼できます。
+ローカルだけで確認したい場合は、Slack風デモUIも用意しています。
 
-## Architecture
-
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). At a glance:
-
+```text
+Boxの sample_risky_contract.pdf を受託者の立場でレビューして
 ```
-MCP host (Claude / Cursor)
-        │  stdio
+
+```text
+Boxの sample_risky_contract.pdf を委託者側でリスクレビューして
+```
+
+```text
+このBox URLの契約書を、受託者側でレビューして
+```
+
+内部では `box_review_contract` が呼ばれ、Box URL、ファイル名、またはfile IDから対象ファイルを解決します。
+同じ契約書でも、委託者・受託者の立場を変えてレビューできます。
+
+### Slack App連携
+
+Slack Appを作成し、Botからこのサーバーのエンドポイントへリクエストを送ります。
+
+必要な環境変数：
+
+```bash
+SLACK_BOT_TOKEN=
+SLACK_SIGNING_SECRET=
+BOX_CLIENT_ID=
+BOX_CLIENT_SECRET=
+BOX_ENTERPRISE_ID=
+```
+
+起動：
+
+```bash
+npm run build
+npm run start:slack
+```
+
+Slack App側の設定：
+
+- Event Subscriptions
+  - Request URL: `https://<公開URL>/slack/events`
+  - Subscribe to bot events:
+    - `app_mention`
+    - `message.im`
+- Slash Commands
+  - Command: `/contract-review`
+  - Request URL: `https://<公開URL>/slack/commands`
+- OAuth Scopes
+  - `app_mentions:read`
+  - `chat:write`
+  - `im:history`
+
+ローカルで動かす場合は、ngrokやCloudflare Tunnelなどで `http://localhost:3000` を一時公開します。
+Slackからのリクエストは `SLACK_SIGNING_SECRET` で検証します。
+
+Slackでの依頼例：
+
+```text
+@契約レビューBot Boxの sample_risky_contract.pdf を受託者の立場でレビューして
+```
+
+```text
+/contract-review Boxの sample_risky_contract.pdf を委託者側でリスクレビューして
+```
+
+### Slack風デモUI（ローカル確認用）
+
+```bash
+npm run build
+BOX_ENV_PATH=/path/to/.env npm run demo:slack
+```
+
+ブラウザで `http://localhost:4173` を開きます。
+UIだけSlack風にしており、裏側では本物のBox AI APIを呼び出します。
+Slack App設定を作る前の確認に使います。
+
+## 主な機能
+
+| ツール | 内容 | 使うBox機能 |
+|------|------|-----------|
+| `box_review_contract` | 日本語契約書を法務観点でレビュー。重大度順の懸念点、推奨アクション、出典を返す | Box AI `/ai/ask` |
+| `box_extract_contract` | 契約相手方、期間、自動更新、解約予告、金額、準拠法などを構造化抽出 | Box AI `/ai/extract_structured` |
+| `box_governance_scan` | PII・機密情報を検出し、リスクバンドに集約 | Boxテキスト表現 + ポリシールール |
+| `box_writeback_metadata` | 抽出・判定結果をエンタープライズメタデータとして書き戻し | Box Metadata API |
+| `box_post_summary_comment` | レビュー要約をBoxファイルのコメントとして残す | Box Comments API |
+| `box_ai_ask` | Box内のファイルを根拠に、出典付きで質問応答 | Box AI `/ai/ask` |
+
+エージェントで連結すると、次の流れをBox内で完結できます。
+
+```text
+契約取り込み → 契約レビュー → ガバナンス確認 → メタデータ反映 → コメント記録
+```
+
+## アーキテクチャ
+
+詳細は [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) を参照。
+
+```text
+Claude Desktop / Cursor などのMCPホスト
+        │ stdio
         ▼
-legal-contract-reviewer  ──►  Box AI API  (ask / extract_structured)
-        │                 Box Content API (metadata / comments / files)
-        └─ governance rules (policy-driven, not hard-coded in production)
+legal-contract-reviewer
+        ├─ Box AI API（ask / extract_structured）
+        ├─ Box Content API（files / comments）
+        ├─ Box Metadata API
+        └─ ガバナンスルール
 ```
 
-## Setup
+## セットアップ
 
-### 1. Get a Box developer account + app (≈ 5 min)
-1. Sign up for a free Box account and open the **Developer Console** (`app.box.com/developers/console`).
-2. **Create Platform App → Custom App**. Pick an auth method (either works for a Developer Token).
-3. Open the app's **Configuration** tab → **Generate Developer Token** (valid 60 min).
+### 1. Boxアプリを作成
 
-> For something more durable than a 60-minute token, configure **Client Credentials Grant (CCG)** and
-> authorize the app in the Admin Console. The server supports both — see `.env.template`.
+1. Box Developer Consoleを開く
+2. Custom Appを作成
+3. 認証方式を選択
+   - 簡易デモ：Developer Token
+   - 継続利用：Client Credentials Grant（CCG）
+4. 必要なスコープを有効化
+   - ファイル読み取り
+   - Box AI
+   - メタデータ
+   - コメント
 
-### 2. Configure auth
+### 2. 認証情報を設定
 
-For a quick demo, use a short-lived Developer Token:
+短時間のデモはDeveloper Tokenで動かせます。
 
 ```bash
 cp .env.template .env
-# paste BOX_DEV_TOKEN into .env
+# .env に BOX_DEV_TOKEN を設定
 ```
 
-For a durable CCG setup:
+CCGで動かす場合は、`.env` に次を設定します。
 
-1. In the Box Developer Console, create a Custom App with **Client Credentials Grant**.
-2. Enable the app scopes needed for reading files, Box AI, metadata, and comments.
-3. Submit/authorize the app in the Admin Console.
-4. Put `BOX_CLIENT_ID`, `BOX_CLIENT_SECRET`, and `BOX_ENTERPRISE_ID` in `.env`.
+```bash
+BOX_CLIENT_ID=
+BOX_CLIENT_SECRET=
+BOX_ENTERPRISE_ID=
+```
 
-With `BOX_ENTERPRISE_ID`, the server runs as the app's service account and can read files owned by or
-collaborated with that service account. If your enterprise supports act-as-user, use `BOX_USER_ID`
-instead of `BOX_ENTERPRISE_ID`.
+`BOX_ENTERPRISE_ID` を使う場合、MCPサーバーはサービスアカウントとして動作します。
+そのため、サービスアカウントが所有または参照できるBoxファイルだけをレビューできます。
 
-> Note: free Box Developer accounts may reject CCG act-as-user with `invalid_grant`. In that case,
-> use the enterprise/service-account mode for demos. Paid enterprise environments can enable the
-> act-as-user pattern through the normal admin authorization path.
+ユーザー代理で実行したい場合は `BOX_USER_ID` を使います。
+ただし、無料のBox Developer環境では as-user が `invalid_grant` になる場合があります。
+有料のEnterprise環境では、管理者承認とアプリ設定によりas-user構成を取れます。
 
-### 3. Run
+### 3. ビルドと起動
+
 ```bash
 npm install
 npm run build
-npm start               # or wire into an MCP host (below)
+npm start
 ```
 
-### 4. Wire into Claude Desktop
-Copy `claude_desktop_config.example.json` into your Claude Desktop config, fix the absolute path and
-token, and restart. Then ask Claude: *"Extract the contract fields from Box file 123, scan it for PII,
-and post a review summary."*
+### 4. Claude Desktopに接続
 
-You can also drive it with the MCP Inspector:
+`claude_desktop_config.example.json` を参考に、Claude DesktopのMCP設定へ `dist/index.js` の絶対パスを登録します。
+設定後、Claude Desktopを再起動します。
+
+例：
+
+```text
+Boxの sample_risky_contract.pdf を受託者の立場でレビューして
+```
+
+MCP Inspectorでも確認できます。
+
 ```bash
 npx @modelcontextprotocol/inspector node dist/index.js
 ```
 
-## Security notes
-- Developer Tokens are short-lived and scoped to the developer's own account — demo only.
-- Governance rules are conservative defaults; in a real engagement they are driven by the customer's
-  classification policy (ISMS / 個人情報保護法 / Pマーク), not hard-coded.
-- No document content is persisted by this server; it streams through to Box AI and back.
+## デモ用ファイル
 
-## Tech
-TypeScript · `box-typescript-sdk-gen` (official Box SDK) · `@modelcontextprotocol/sdk` · `zod`.
+脆弱な条項を意図的に含む `sample_risky_contract.pdf` を、Boxの `legal-contract-reviewer-demo` フォルダへアップロード済みです。
+ファイル名検索で参照できます。
 
----
-日本語の概要は [`README.ja.md`](README.ja.md) を参照。
+デモ例：
+
+```text
+Boxの sample_risky_contract.pdf を受託者の立場でレビューして
+```
+
+```text
+Boxの sample_risky_contract.pdf を委託者側でリスクレビューして
+```
+
+## セキュリティとガバナンス
+
+- 契約書本文はこのMCPサーバーに保存しません
+- 契約書の解析はBox AI APIを通じて実行します
+- `.env` は `.gitignore` 済みで、リポジトリへコミットしません
+- Developer Tokenは60分で失効するため、デモ用途です
+- CCGではサービスアカウントの権限範囲がそのまま参照可能範囲になります
+- `box_governance_scan` のPII検出はPoC実装です。本番では企業の分類ポリシーに合わせてルール化します
+
+## 技術スタック
+
+- TypeScript
+- `box-typescript-sdk-gen`
+- `@modelcontextprotocol/sdk`
+- `zod`
+- Box AI API
+- Box Content API
+- Box Metadata API
