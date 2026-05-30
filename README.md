@@ -198,6 +198,42 @@ TypeScript / Node.js オーケストレーション層
 Box Search / Box AI / Box Metadata
 ```
 
+### AWS本番リファレンス
+
+PoCではローカルPC上でSlack AppとMCPサーバーを動かしています。
+実顧客に展開する場合は、同じTypeScriptの業務ロジックをAWS上のサーバーレス構成に載せ替える想定です。
+
+```mermaid
+flowchart TD
+  BF["Boxフォルダ\n契約書アップロード・更新"] -->|"Box Webhook"| APIGW["Amazon API Gateway"]
+  Slack["Slack\n契約レビュー依頼"] -->|"Events API / Slash Command"| APIGW
+  APIGW --> L["AWS Lambda\nTypeScriptオーケストレーション"]
+  L -->|"Box Search / File / Metadata"| BoxAPI["Box API"]
+  L -->|"契約書レビュー"| BoxAI["Box AI API"]
+  L -. "非機密の意図分類・整形に限定" .-> Bedrock["Amazon Bedrock\nOptional"]
+  L -->|"監査ログ"| DDB["Amazon DynamoDB"]
+  L -->|"レビュー結果"| Slack
+  SM["AWS Secrets Manager\nBox / Slack認証情報"] --> L
+  CW["Amazon CloudWatch\nログ・メトリクス・アラーム"] --> L
+```
+
+本番化で重視する点：
+
+- Box認証情報とSlackシークレットはAWS Secrets Managerで管理
+- Lambda実行ロールはIAM最小権限で設計
+- 必要に応じてVPC内のプライベートサブネットで実行
+- DynamoDBにレビュー依頼、対象ファイル、実行結果、エラーを監査ログとして保存
+- CloudWatchで実行ログ、遅延、失敗率を監視
+- 契約書本文のレビューはBox AIを基本とし、Bedrockを使う場合は非機密な意図分類や文面整形に限定
+
+面接での説明ポイント：
+
+```text
+PoCではSlackとBox AIをつないだ自然文レビュー体験を実装しています。
+本番運用ではAWS Lambda/API Gatewayに載せ、Secrets Manager、IAM最小権限、DynamoDB監査ログ、CloudWatch監視を組み合わせます。
+契約書本文のAIレビューはBox AIで行い、AWSは実行基盤と監査・運用のレイヤーとして使います。
+```
+
 ### データ境界
 
 | データ | 扱う場所 |
