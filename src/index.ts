@@ -18,6 +18,7 @@ import { createBoxClient } from "./box.js";
 import {
   aiAskWithCitations,
   extractContractFields,
+  reviewContract,
   governanceScan,
   writebackMetadata,
   postSummaryComment,
@@ -65,6 +66,26 @@ server.registerTool(
   async ({ fileId }) => {
     try {
       return ok(await extractContractFields(client, { fileId }));
+    } catch (e) {
+      return fail(e);
+    }
+  }
+);
+
+server.registerTool(
+  "box_review_contract",
+  {
+    title: "Review contract risks (JP)",
+    description:
+      "Review a Japanese contract from the 委託者 or 受託者 standpoint. Returns legal concerns, severity, recommended actions, and citations.",
+    inputSchema: {
+      fileId: z.string().describe("Box file ID of the contract"),
+      standpoint: z.enum(["委託者", "受託者"]).default("受託者").describe("Review standpoint"),
+    },
+  },
+  async ({ fileId, standpoint }) => {
+    try {
+      return ok(await reviewContract(client, { fileId, standpoint }));
     } catch (e) {
       return fail(e);
     }

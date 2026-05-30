@@ -6,6 +6,8 @@ import type { BoxClient } from "box-typescript-sdk-gen";
 import { readByteStream } from "box-typescript-sdk-gen/internal";
 import { GOVERNANCE_RULES, rollupRisk, type RiskBand } from "./governance.js";
 
+export type ContractReviewStandpoint = "委託者" | "受託者";
+
 /** Fetch the plain-text representation of a Box file so we can scan / cite it locally. */
 async function getFileText(client: BoxClient, fileId: string): Promise<string> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -89,7 +91,49 @@ export async function extractContractFields(
   return (res?.answer?.rawData ?? res?.rawData ?? {}) as Record<string, unknown>;
 }
 
-/** 3) Governance scan: detect PII / sensitive content, roll up to a risk band. */
+/** 3) Review a Japanese contract from a specific legal standpoint. */
+export async function reviewContract(
+  client: BoxClient,
+  args: { fileId: string; standpoint?: ContractReviewStandpoint }
+) {
+  const standpoint = args.standpoint ?? "受託者";
+  const prompt = `あなたは企業法務の専門家です。添付の契約書を「${standpoint}」の立場でレビューし、懸念点を洗い出してください。
+
+以下の8つの観点で精査すること：
+1. 一方的に不利な条項（責任・賠償の偏り）
+2. 解約・中途解約の条件（予告期間、違約金）
+3. 自動更新の妥当性
+4. 損害賠償の上限・範囲
+5. 秘密保持の範囲と期間
+6. 知的財産権の帰属
+7. 準拠法・管轄
+8. 曖昧・多義的で解釈が割れる表現
+
+出力形式：
+- 冒頭に「総評」を1〜2文（このまま締結してよいか、${standpoint}が最も注意すべき点は何か）
+- その後、懸念点を【重大度: 高 → 中 → 低】の順に列挙
+- 各懸念点は以下を必ず含める：
+  - 該当条項（第◯条など。特定できない場合は「全体」）
+  - リスク内容（${standpoint}にとって何が問題か）
+  - 重大度（高/中/低）
+  - 推奨アクション（どう修正・交渉すべきか具体的に）
+- 該当する懸念がない観点は触れなくてよい。憶測で条項を捏造しないこと。原文にない内容は書かない。`;
+
+  const res = await client.ai.createAiAsk({
+    mode: "single_item_qa",
+    prompt,
+    items: [{ id: args.fileId, type: "file" }],
+    includeCitations: true,
+  });
+  const citations =
+    res?.citations?.map((c) => ({
+      file: c.name ?? c.id,
+      snippet: c.content,
+    })) ?? [];
+  return { standpoint, answer: res?.answer ?? "", citations };
+}
+
+/** 4) Governance scan: detect PII / sensitive content, roll up to a risk band. */
 export async function governanceScan(
   client: BoxClient,
   args: { fileId: string }
@@ -106,7 +150,7 @@ export async function governanceScan(
   return { fileId: args.fileId, risk, findings: hits };
 }
 
-/** 4) Write a key/value back to the file as Box metadata (auditable record). */
+/** 5) Write a key/value back to the file as Box metadata (auditable record). */
 export async function writebackMetadata(
   client: BoxClient,
   args: { fileId: string; templateKey: string; data: Record<string, unknown> }
@@ -120,7 +164,7 @@ export async function writebackMetadata(
   return { applied: true, instanceId: (res as { id?: string })?.id };
 }
 
-/** 5) Post a human-readable summary as a Box comment (review trail in-context). */
+/** 6) Post a human-readable summary as a Box comment (review trail in-context). */
 export async function postSummaryComment(
   client: BoxClient,
   args: { fileId: string; message: string }
