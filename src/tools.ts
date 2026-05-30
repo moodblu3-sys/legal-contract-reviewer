@@ -8,6 +8,82 @@ import { GOVERNANCE_RULES, rollupRisk, type RiskBand } from "./governance.js";
 
 export type ContractReviewStandpoint = "委託者" | "受託者";
 
+type ContractFileReference = {
+  fileId?: string;
+  boxUrl?: string;
+  fileName?: string;
+};
+
+type ResolvedContractFile = {
+  id: string;
+  name?: string;
+  matchedBy: "fileId" | "boxUrl" | "fileName";
+};
+
+function extractFileIdFromBoxUrl(boxUrl: string): string | undefined {
+  const patterns = [
+    /\/file\/(\d+)/,
+    /\/files\/(\d+)/,
+    /[?&]file_id=(\d+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = boxUrl.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+  return undefined;
+}
+
+async function resolveContractFile(
+  client: BoxClient,
+  ref: ContractFileReference
+): Promise<ResolvedContractFile> {
+  if (ref.fileId) return { id: ref.fileId, matchedBy: "fileId" };
+
+  if (ref.boxUrl) {
+    const fileId = extractFileIdFromBoxUrl(ref.boxUrl);
+    if (!fileId) {
+      throw new Error("Box URLからファイルIDを特定できませんでした。BoxのファイルURLを指定してください。");
+    }
+    return { id: fileId, matchedBy: "boxUrl" };
+  }
+
+  if (ref.fileName) {
+    const results = await client.search.searchForContent({
+      query: `"${ref.fileName}"`,
+      type: "file",
+      contentTypes: ["name"],
+      fileExtensions: ["pdf"],
+      limit: 5,
+      fields: ["id", "name", "type"],
+    });
+    const files =
+      results.entries?.flatMap((entry) => {
+        const item = entry as { id?: string; name?: string; type?: string };
+        return item.type === "file" && item.id ? [{ id: item.id, name: item.name }] : [];
+      }) ?? [];
+    const exactMatches = files.filter(
+      (entry) => entry.name?.toLowerCase() === ref.fileName?.toLowerCase()
+    );
+
+    if (exactMatches.length === 1) {
+      return { id: exactMatches[0].id, name: exactMatches[0].name, matchedBy: "fileName" };
+    }
+
+    if (files.length === 1) {
+      return { id: files[0].id, name: files[0].name, matchedBy: "fileName" };
+    }
+
+    if (files.length > 1) {
+      const candidates = files.map((entry) => entry.name ?? entry.id).join(", ");
+      throw new Error(`候補が複数見つかりました。対象を絞ってください: ${candidates}`);
+    }
+
+    throw new Error(`Box上で "${ref.fileName}" というPDFが見つかりませんでした。`);
+  }
+
+  throw new Error("レビュー対象を指定してください。Box URL、ファイル名、またはfileIdが必要です。");
+}
+
 /** Fetch the plain-text representation of a Box file so we can scan / cite it locally. */
 async function getFileText(client: BoxClient, fileId: string): Promise<string> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -94,9 +170,10 @@ export async function extractContractFields(
 /** 3) Review a Japanese contract from a specific legal standpoint. */
 export async function reviewContract(
   client: BoxClient,
-  args: { fileId: string; standpoint?: ContractReviewStandpoint }
+  args: ContractFileReference & { standpoint?: ContractReviewStandpoint }
 ) {
   const standpoint = args.standpoint ?? "受託者";
+  const file = await resolveContractFile(client, args);
   const prompt = `あなたは企業法務の専門家です。添付の契約書を「${standpoint}」の立場でレビューし、懸念点を洗い出してください。
 
 以下の8つの観点で精査すること：
@@ -117,12 +194,13 @@ export async function reviewContract(
   - リスク内容（${standpoint}にとって何が問題か）
   - 重大度（高/中/低）
   - 推奨アクション（どう修正・交渉すべきか具体的に）
-- 該当する懸念がない観点は触れなくてよい。憶測で条項を捏造しないこと。原文にない内容は書かない。`;
+- 該当する懸念がない観点は触れなくてよい。憶測で条項を捏造しないこと。原文にない内容は書かない。
+- 回答は自然な日本語で書くこと。"Based on general knowledge" などの英語注記は不要。`;
 
   const res = await client.ai.createAiAsk({
     mode: "single_item_qa",
     prompt,
-    items: [{ id: args.fileId, type: "file" }],
+    items: [{ id: file.id, type: "file" }],
     includeCitations: true,
   });
   const citations =
@@ -130,7 +208,7 @@ export async function reviewContract(
       file: c.name ?? c.id,
       snippet: c.content,
     })) ?? [];
-  return { standpoint, answer: res?.answer ?? "", citations };
+  return { file, standpoint, answer: res?.answer ?? "", citations };
 }
 
 /** 4) Governance scan: detect PII / sensitive content, roll up to a risk band. */

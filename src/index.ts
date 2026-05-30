@@ -77,15 +77,17 @@ server.registerTool(
   {
     title: "Review contract risks (JP)",
     description:
-      "Review a Japanese contract from the 委託者 or 受託者 standpoint. Returns legal concerns, severity, recommended actions, and citations.",
+      "Review a Japanese contract from the 委託者 or 受託者 standpoint. The contract can be identified by Box URL, file name, or file ID. Returns legal concerns, severity, recommended actions, and citations.",
     inputSchema: {
-      fileId: z.string().describe("Box file ID of the contract"),
-      standpoint: z.enum(["委託者", "受託者"]).default("受託者").describe("Review standpoint"),
+      boxUrl: z.string().optional().describe("Box file URL, when the user pasted a Box link"),
+      fileName: z.string().optional().describe("Contract PDF file name to search for in Box"),
+      fileId: z.string().optional().describe("Box file ID, for fallback/debug use"),
+      standpoint: z.enum(["委託者", "受託者"]).default("受託者").describe("Review standpoint inferred from the user's request"),
     },
   },
-  async ({ fileId, standpoint }) => {
+  async ({ fileId, boxUrl, fileName, standpoint }) => {
     try {
-      return ok(await reviewContract(client, { fileId, standpoint }));
+      return ok(await reviewContract(client, { fileId, boxUrl, fileName, standpoint }));
     } catch (e) {
       return fail(e);
     }

@@ -1,7 +1,7 @@
 # legal-contract-reviewer
 
-> Demo screenshot placeholder: add a Claude Desktop capture of `box_extract_contract` running against
-> a Japanese contract PDF before publishing.
+> Demo screenshot placeholder: add a Claude Desktop capture of a natural-language contract review,
+> for example: "Boxの `sample_risky_contract.pdf` を受託者の立場でレビューして".
 
 A **Model Context Protocol (MCP) server** that turns the **Box AI API** into governed, vertical
 document workflows — a *solution layer* on top of Box's native platform for enterprises that
@@ -24,6 +24,7 @@ Each tool is a **solution operation**, not a raw API passthrough:
 |------|--------------|--------------------|
 | `box_ai_ask` | Answers a question grounded in one or more Box files, **with citations** | Box AI `/ai/ask` |
 | `box_extract_contract` | Extracts key **Japanese** contract fields (counterparty, term, auto-renewal, termination notice, amount, governing law) | Box AI `/ai/extract_structured` |
+| `box_review_contract` | Reviews a Japanese contract from the 委託者 or 受託者 standpoint, with severity-ranked concerns, recommended actions, and **citations** | Box AI `/ai/ask` |
 | `box_governance_scan` | Scans content for PII / sensitive markers and rolls findings up to a **risk band** | text representation + policy rules |
 | `box_writeback_metadata` | Persists extracted/derived fields back onto the file as **enterprise metadata** (auditable record) | Box Metadata API |
 | `box_post_summary_comment` | Attaches a human-readable review summary to the file as a **comment** (in-context review trail) | Box Comments API |
@@ -88,8 +89,18 @@ npm start               # or wire into an MCP host (below)
 
 ### 4. Wire into Claude Desktop
 Copy `claude_desktop_config.example.json` into your Claude Desktop config, fix the absolute path and
-token, and restart. Then ask Claude: *"Extract the contract fields from Box file 123, scan it for PII,
-and post a review summary."*
+token, and restart. Then ask in natural language:
+
+```text
+Boxの sample_risky_contract.pdf を受託者の立場でレビューして
+```
+
+```text
+このBox URLの契約書を、委託者側でリスクレビューして
+```
+
+The user does not need to know the MCP tool name or Box file ID. Claude can call
+`box_review_contract` behind the scenes using a Box URL, a file name, or a file ID.
 
 You can also drive it with the MCP Inspector:
 ```bash
