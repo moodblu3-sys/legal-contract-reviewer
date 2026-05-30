@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "demo:slack": "node demo-slack/server.mjs",
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit"
   },

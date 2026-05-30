@@ -18,7 +18,7 @@ Boxは、汎用MCPサーバーと強力なBox AI APIをすでに提供してい�
 ## デモ体験
 
 ユーザーはMCPツール名やBox file IDを意識しません。
-Claude Desktop上で、自然言語で依頼します。
+面接デモでは、実Slack連携ではなく、外部認証に依存しないSlack風ローカルUIで業務チャネル体験を見せます。
 
 ```text
 Boxの sample_risky_contract.pdf を受託者の立場でレビューして
@@ -34,6 +34,17 @@ Boxの sample_risky_contract.pdf を委託者側でリスクレビューして
 
 内部では `box_review_contract` が呼ばれ、Box URL、ファイル名、またはfile IDから対象ファイルを解決します。
 同じ契約書でも、委託者・受託者の立場を変えてレビューできます。
+
+### Slack風デモUI
+
+```bash
+npm run build
+BOX_ENV_PATH=/path/to/.env npm run demo:slack
+```
+
+ブラウザで `http://localhost:4173` を開きます。
+UIだけSlack風にしており、裏側では本物のBox AI APIを呼び出します。
+本番ではSlack AppやTeams Botに置き換えられる構成です。
 
 ## 主な機能
 
