@@ -3,32 +3,49 @@
  * into something an enterprise customer would actually buy — not a thin wrapper over one endpoint.
  */
 import type { BoxClient } from "box-typescript-sdk-gen";
+import { readByteStream } from "box-typescript-sdk-gen/internal";
 import { GOVERNANCE_RULES, rollupRisk, type RiskBand } from "./governance.js";
 
 /** Fetch the plain-text representation of a Box file so we can scan / cite it locally. */
 async function getFileText(client: BoxClient, fileId: string): Promise<string> {
-  // Box stores generated text representations; the [type]=extracted_text rep is the simplest.
-  const stream = await client.files.getFileById(fileId, {
-    queryParams: { fields: ["name", "id"] },
-  });
-  void stream;
-  // The representation download path is exposed via the downloads manager / representations.
-  // For portability we read the text representation through the dedicated endpoint.
-  const rep = await client.files.getFileById(fileId, {
-    queryParams: {
-      fields: ["representations"],
-    },
-    headers: { boxapi: 'representation=[extracted_text]' as unknown as string },
-  } as never);
-  void rep;
-  // Fall back to Box AI itself for text when no extracted_text rep exists (small files / demos).
-  const ai = await client.ai.createAiAsk({
-    mode: "single_item_qa",
-    prompt:
-      "Return the full plain text of this document verbatim with no commentary.",
-    items: [{ id: fileId, type: "file" }],
-  });
-  return ai?.answer ?? "";
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const file = await client.files.getFileById(fileId, {
+      queryParams: { fields: ["representations"] },
+      headers: { xRepHints: "[extracted_text]" },
+    });
+    const representation = file.representations?.entries?.find(
+      (entry) => entry.representation === "extracted_text"
+    );
+
+    if (!representation) {
+      throw new Error(`No extracted_text representation is available for file ${fileId}.`);
+    }
+
+    if (representation.status?.state === "success" && representation.content?.urlTemplate) {
+      const url = representation.content.urlTemplate.replace("{+asset_path}", "");
+      const response = await client.makeRequest({
+        method: "GET",
+        url,
+        responseFormat: "binary",
+      });
+      if (!response.content) {
+        throw new Error(`Downloaded extracted_text representation was empty for file ${fileId}.`);
+      }
+      return (await readByteStream(response.content)).toString("utf8");
+    }
+
+    if (representation.status?.state === "none" && representation.info?.url) {
+      await client.makeRequest({
+        method: "GET",
+        url: representation.info.url,
+        responseFormat: "json",
+      });
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+
+  throw new Error(`extracted_text representation is still pending for file ${fileId}.`);
 }
 
 /** 1) Ask a question across one or more Box files and return an answer WITH citations. */
