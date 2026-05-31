@@ -78,7 +78,7 @@ server.registerTool(
   {
     title: "Find contract PDFs in Box",
     description:
-      "Find Japanese contract PDF candidates in Box from a natural-language query such as company name and contract type. Use this when the target contract is ambiguous before reviewing.",
+      "Find Japanese contract PDF candidates in Box from a natural-language query such as company name and contract type. If the user identifies a contract by company name or contract type and the target is ambiguous, use this tool before reviewing.",
     inputSchema: {
       query: z.string().describe("Natural-language search query, for example: グローバルコマースとの業務委託契約"),
       limit: z.number().int().min(1).max(10).default(5).describe("Maximum number of candidates to return"),
@@ -98,7 +98,7 @@ server.registerTool(
   {
     title: "Review contract risks (JP)",
     description:
-      "Review a Japanese contract from the 委託者 or 受託者 standpoint. The contract can be identified by natural-language query, Box URL, file name, or file ID. Returns legal concerns, severity, recommended actions, and citations.",
+      "Review a Japanese contract from the 委託者 or 受託者 standpoint. If the user identifies the target by company name or contract type, pass that natural-language target as contractQuery. The contract can also be identified by Box URL, file name, or file ID. Returns legal concerns, severity, recommended actions, and citations.",
     inputSchema: {
       contractQuery: z.string().optional().describe("Natural-language target contract query, for example: グローバルコマースとの業務委託契約"),
       boxUrl: z.string().optional().describe("Box file URL, when the user pasted a Box link"),
