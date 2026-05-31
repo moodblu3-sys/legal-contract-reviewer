@@ -12,12 +12,18 @@ type ContractFileReference = {
   fileId?: string;
   boxUrl?: string;
   fileName?: string;
+  contractQuery?: string;
 };
 
 type ResolvedContractFile = {
   id: string;
   name?: string;
-  matchedBy: "fileId" | "boxUrl" | "fileName";
+  matchedBy: "fileId" | "boxUrl" | "fileName" | "contractQuery";
+};
+
+export type ContractSearchCandidate = {
+  id: string;
+  name?: string;
 };
 
 function extractFileIdFromBoxUrl(boxUrl: string): string | undefined {
@@ -53,6 +59,7 @@ async function resolveContractFile(
       type: "file",
       contentTypes: ["name"],
       fileExtensions: ["pdf"],
+      ancestorFolderIds: process.env.BOX_SEARCH_FOLDER_ID ? [process.env.BOX_SEARCH_FOLDER_ID] : undefined,
       limit: 5,
       fields: ["id", "name", "type"],
     });
@@ -81,7 +88,21 @@ async function resolveContractFile(
     throw new Error(`Box上で "${ref.fileName}" というPDFが見つかりませんでした。`);
   }
 
-  throw new Error("レビュー対象を指定してください。Box URL、ファイル名、またはfileIdが必要です。");
+  if (ref.contractQuery) {
+    const candidates = await findContractCandidates(client, { query: ref.contractQuery });
+    if (candidates.length === 1) {
+      return { id: candidates[0].id, name: candidates[0].name, matchedBy: "contractQuery" };
+    }
+
+    if (candidates.length > 1) {
+      const names = candidates.map((entry, index) => `${index + 1}. ${entry.name ?? entry.id}`).join("\n");
+      throw new Error(`候補が複数見つかりました。どの契約書か選んでください。\n${names}`);
+    }
+
+    throw new Error(`Box上で "${ref.contractQuery}" に一致するPDFが見つかりませんでした。`);
+  }
+
+  throw new Error("レビュー対象を指定してください。Box URL、ファイル名、fileId、または自然文のcontractQueryが必要です。");
 }
 
 /** Fetch the plain-text representation of a Box file so we can scan / cite it locally. */
@@ -124,6 +145,64 @@ export async function getFileText(client: BoxClient, fileId: string): Promise<st
   }
 
   throw new Error(`extracted_text representation is still pending for file ${fileId}.`);
+}
+
+function buildContractSearchTerms(query: string): string[] {
+  const normalized = query
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/[、。,.!?！？「」『』（）()]/g, " ")
+    .replace(/\b(review|contract|box)\b/gi, " ")
+    .replace(/について|に関して|に関する|との|という|の|と/g, " ")
+    .replace(/契約書|契約|危ない|条項|記載|レビュー|見て|確認|リスク|側|立場|この|その|あの|ある|ない|です|ます/g, " ")
+    .replace(/受託者|委託者|甲|乙|発注者|依頼者|ベンダー|委託先/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return normalized
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2)
+    .slice(0, 4);
+}
+
+function normalizeSearchText(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[・\s　、。,.!?！？「」『』（）()\-_]/g, "");
+}
+
+export async function findContractCandidates(
+  client: BoxClient,
+  args: { query: string; limit?: number }
+): Promise<ContractSearchCandidate[]> {
+  const terms = buildContractSearchTerms(args.query);
+  if (terms.length === 0) return [];
+
+  const results = await client.search.searchForContent({
+    query: terms.join(" "),
+    type: "file",
+    contentTypes: ["name", "file_content"],
+    fileExtensions: ["pdf"],
+    ancestorFolderIds: process.env.BOX_SEARCH_FOLDER_ID ? [process.env.BOX_SEARCH_FOLDER_ID] : undefined,
+    limit: args.limit ?? 5,
+    fields: ["id", "name", "type"],
+  });
+  const candidates =
+    results.entries?.flatMap((entry) => {
+      const item = entry as { id?: string; name?: string; type?: string };
+      return item.type === "file" && item.id ? [{ id: item.id, name: item.name }] : [];
+    }) ?? [];
+
+  const normalizedTerms = terms.map(normalizeSearchText).filter(Boolean);
+  const matched: ContractSearchCandidate[] = [];
+  for (const candidate of candidates) {
+    const text = await getFileText(client, candidate.id);
+    const haystack = normalizeSearchText(`${candidate.name ?? ""}\n${text}`);
+    if (normalizedTerms.every((term) => haystack.includes(term))) {
+      matched.push(candidate);
+    }
+  }
+  return matched;
 }
 
 /** 1) Ask a question across one or more Box files and return an answer WITH citations. */

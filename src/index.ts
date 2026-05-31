@@ -18,6 +18,7 @@ import { createBoxClient } from "./box.js";
 import {
   aiAskWithCitations,
   extractContractFields,
+  findContractCandidates,
   reviewContract,
   governanceScan,
   writebackMetadata,
@@ -73,21 +74,42 @@ server.registerTool(
 );
 
 server.registerTool(
+  "box_find_contracts",
+  {
+    title: "Find contract PDFs in Box",
+    description:
+      "Find Japanese contract PDF candidates in Box from a natural-language query such as company name and contract type. Use this when the target contract is ambiguous before reviewing.",
+    inputSchema: {
+      query: z.string().describe("Natural-language search query, for example: グローバルコマースとの業務委託契約"),
+      limit: z.number().int().min(1).max(10).default(5).describe("Maximum number of candidates to return"),
+    },
+  },
+  async ({ query, limit }) => {
+    try {
+      return ok(await findContractCandidates(client, { query, limit }));
+    } catch (e) {
+      return fail(e);
+    }
+  }
+);
+
+server.registerTool(
   "box_review_contract",
   {
     title: "Review contract risks (JP)",
     description:
-      "Review a Japanese contract from the 委託者 or 受託者 standpoint. The contract can be identified by Box URL, file name, or file ID. Returns legal concerns, severity, recommended actions, and citations.",
+      "Review a Japanese contract from the 委託者 or 受託者 standpoint. The contract can be identified by natural-language query, Box URL, file name, or file ID. Returns legal concerns, severity, recommended actions, and citations.",
     inputSchema: {
+      contractQuery: z.string().optional().describe("Natural-language target contract query, for example: グローバルコマースとの業務委託契約"),
       boxUrl: z.string().optional().describe("Box file URL, when the user pasted a Box link"),
       fileName: z.string().optional().describe("Contract PDF file name to search for in Box"),
       fileId: z.string().optional().describe("Box file ID, for fallback/debug use"),
       standpoint: z.enum(["委託者", "受託者"]).default("受託者").describe("Review standpoint inferred from the user's request"),
     },
   },
-  async ({ fileId, boxUrl, fileName, standpoint }) => {
+  async ({ fileId, boxUrl, fileName, contractQuery, standpoint }) => {
     try {
-      return ok(await reviewContract(client, { fileId, boxUrl, fileName, standpoint }));
+      return ok(await reviewContract(client, { fileId, boxUrl, fileName, contractQuery, standpoint }));
     } catch (e) {
       return fail(e);
     }
