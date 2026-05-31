@@ -1,248 +1,236 @@
 # legal-contract-reviewer
 
-日本語契約書をBox AIで法務レビューする、Claude Desktop向けMCPサーバーです。
+契約書レビュー業務を対象とした、Box AI APIオーケストレーション用MCPサーバーです。
+現時点では、日本語契約書レビューを主なユースケースとしています。
+ただし、設計自体は日本語の契約書だけに限定していません。Box AIが本文を扱える範囲で、英語など他言語の契約書レビューにも拡張できます。
 
-Claude DesktopなどのMCPホストから自然文で契約書レビューを依頼し、Box上の契約書PDFを検索し、重大度順のリスク、懸念点、推奨アクション、出典を返します。
-Box公式MCPやBox AI APIを置き換えるものではなく、その上に「契約レビュー業務の体験」を載せるリファレンス実装です。
+Box上の契約書PDFを検索し、Box AIで契約リスクをレビューし、重大度、懸念点、推奨アクション、出典を返します。
+Box公式MCPやBox AI APIを置き換えるものではなく、その上に業務特化の契約レビュー機能を載せるリファレンス実装です。
 
 本プロジェクトはポートフォリオ兼リファレンス実装であり、Box公式製品ではありません。
 
-## 何を見せるか
+## 目的
 
-このPoCで見せること：
+Boxには汎用MCPサーバーとBox AI APIがあります。
+一方、実務で必要になるのは、単なるAPI呼び出しではなく、契約レビューという業務プロセスに沿ったツールです。
 
-- Claude DesktopからMCPツールとして契約書レビューを実行できる
-- ユーザーはBox file IDやツール引数を意識せず、自然文で依頼できる
-- Box上の通常業務フォルダから契約書PDFを検索する
-- 候補が1件ならそのままレビュー、複数ならClaudeが候補を提示してユーザーに確認する
-- 契約書本文のAIレビューはBox AIで行う
-- MCPツールを組み合わせ、抽出、レビュー、ガバナンス確認、メタデータ反映へ拡張できる
-- 実顧客に展開する場合のAWS本番アーキテクチャを説明できる
-
-Claude Desktopでの依頼例：
-
-```text
-グローバルコマースとの業務委託契約について、受託者側で危ない記載がないかレビューして
-```
-
-## 設計の主張
-
-Boxは汎用MCPサーバーとBox AI APIを提供しています。
-このプロジェクトは、それらを再実装するものではありません。
-
-狙いは、Boxの上に次のような業務レイヤーを作ることです。
+このMCPサーバーは、次のような業務レイヤーを提供します。
 
 - 契約書レビューに特化したプロンプト
-- 委託者、受託者というレビュー立場の切り替え
-- 自然文からの契約書検索
-- AIホストによるツール選択とツール連携
-- 監査ログ、メタデータ、コメント記録への拡張
-- 本番運用時のAWSセキュリティ設計
+- 受託者、委託者というレビュー立場の切り替え
+- 会社名や契約種別からの契約書検索
+- 契約書本文に基づくリスク評価
+- 重大度順の懸念点整理
+- 推奨アクションの提示
+- Box AI citationsによる出典提示
+- ガバナンス確認、メタデータ反映、コメント記録への拡張
 
-MCPに絞る理由：
+## 導入メリット
 
-```text
-AIホストがユーザー意図を解釈し、必要なツールを自律的に選び、複数の操作を組み合わせる。
-```
+- ユーザーはBox file IDやAPI仕様を意識せず、自然文で契約レビューを依頼できる
+- 契約書を別システムへコピーせず、Box上の既存ファイルをそのままレビュー対象にできる
+- 契約書本文のAIレビューをBox AIで行い、外部LLMへの本文送信を避けられる
+- MCPホストが契約書検索、レビュー、抽出、ガバナンス確認、メタデータ反映を組み合わせられる
+- レビュー結果をBox Metadataやコメントに戻すことで、AI回答を業務記録として残せる
+- 汎用APIではなく、契約レビュー業務に沿ったツールとして利用できる
 
-この価値を見せるため、入口はClaude DesktopなどのMCPホストに統一します。
-
-## データ境界
-
-データ境界の表現は正確に置きます。
-
-```text
-契約書本文を外部LLMへ渡さない。
-契約書本文のAIレビューはBox AIで行う。
-MCPサーバーには、検索語、ファイル名、レビュー結果、出典スニペットなど必要な情報だけが渡る。
-```
-
-「データが一切Box外に出ない」ではなく、「契約書本文を外部LLMに渡さず、Box AIとBox権限を軸にレビューする」がこのPoCの正確な主張です。
-
-## 現在のPoC構成
-
-現在のデモでは、MCPサーバーをローカルPCで動かします。
-Claude DesktopからはstdioでMCPサーバーを起動します。
+## 全体設計
 
 ```mermaid
 flowchart LR
-  User["業務ユーザー"] -->|"自然文で依頼"| Claude["Claude Desktop\nMCPホスト"]
-  Claude -->|"stdio"| MCP["MCP Server\nsrc/index.ts"]
-  MCP -->|"ツール実行"| Logic["契約レビュー業務ロジック\nsrc/tools.ts"]
+  Host["MCPホスト\nClaude Desktopなど"] -->|"stdio"| MCP["legal-contract-reviewer\nMCP Server"]
+  MCP --> Tools["MCP Tools\nsrc/index.ts"]
+  Tools --> Logic["業務ロジック\nsrc/tools.ts"]
 
-  Logic -->|"フォルダ限定検索"| Search["Box Search API"]
-  Search --> Folder["Box業務フォルダ\n契約書PDF"]
-  Logic -->|"本文照合\n候補絞り込み"| Text["Box extracted_text\nrepresentation"]
-  Logic -->|"契約書レビュー\n出典付き回答"| BoxAI["Box AI API"]
+  Logic -->|"契約書候補検索"| Search["Box Search API"]
+  Logic -->|"本文表現取得"| Text["Box extracted_text\nrepresentations"]
+  Logic -->|"契約レビュー"| BoxAI["Box AI API"]
+  Logic -->|"メタデータ更新"| Metadata["Box Metadata API"]
+  Logic -->|"コメント記録"| Comments["Box Comments API"]
 
-  BoxAI --> Logic
-  Logic --> MCP
-  MCP --> Claude
+  Search --> BoxFiles["Box上の契約書PDF"]
+  Text --> BoxFiles
+  BoxAI --> BoxFiles
 ```
 
-### 処理フロー
-
-```text
-1. Claude Desktopで自然文のレビュー依頼をする
-2. ClaudeがMCPツール box_review_contract または box_find_contracts を選ぶ
-3. contractQuery に会社名や契約種別を渡す
-4. BOX_SEARCH_FOLDER_ID 配下でBox Searchを実行する
-5. 候補PDFの本文を取得し、検索語をすべて含むものだけに絞る
-6. 候補が1件ならレビュー、複数ならClaudeが候補を提示してユーザーに確認する
-7. Box AIに契約レビューを依頼する
-8. 重大度順の懸念点、推奨アクション、出典をClaudeに返す
-```
-
-## AWS本番リファレンス
-
-実顧客に展開する場合は、MCPツール実行層をAWS上に配置する構成を想定します。
-AWSが担うのは、ツール実行、Box連携、監査ログ、秘密情報管理、監視です。
-契約書本文のレビューは引き続きBox AIを中心にします。
-
-### 本番構成図
-
-```mermaid
-flowchart TD
-  subgraph Client["AIホスト"]
-    Host["Claude Desktop / Enterprise Agent\nMCP Client"]
-  end
-
-  subgraph AWS["AWS本番環境"]
-    Runtime["MCP Tool Runtime\nTypeScript / Node.js"]
-    DDB["Amazon DynamoDB\n監査ログ・ジョブ状態"]
-    SM["AWS Secrets Manager\nBox認証情報"]
-    CW["Amazon CloudWatch\nログ・メトリクス・アラーム"]
-    KMS["AWS KMS\n暗号化キー"]
-  end
-
-  subgraph Box["Box"]
-    BoxFolder["Boxフォルダ\n契約書PDF"]
-    BoxContent["Box Content API\nSearch / File / Metadata"]
-    BoxAI["Box AI API\n契約書レビュー"]
-  end
-
-  Host -->|"MCP tool call"| Runtime
-  Runtime -->|"Secrets取得"| SM
-  Runtime -->|"検索・ファイル参照"| BoxContent
-  Runtime -->|"契約書本文のAIレビュー"| BoxAI
-  BoxContent --> BoxFolder
-  Runtime -->|"依頼・対象・結果・エラー"| DDB
-  Runtime -->|"ツール結果"| Host
-
-  DDB -. "暗号化" .-> KMS
-  SM -. "暗号化" .-> KMS
-  Runtime --> CW
-```
-
-### 本番の流れ
-
-```text
-AIホスト
-  → MCPツール呼び出し
-  → AWS上のMCP Tool Runtime
-  → Box Search / Box AI
-  → DynamoDBに監査ログ
-  → AIホストへ結果返却
-```
-
-Box上のファイル追加・更新を起点に事前処理する場合は、Box Webhookでメタデータ更新や検索補助情報の整備を行う構成も拡張案になります。
-ただし、ユーザー操作の入口はMCPホストに置きます。
-
-### AWSセキュリティ設計
-
-実運用で重視する点：
-
-- Box認証情報はSecrets Managerで管理
-- 実行ロールは必要なSecret、DynamoDBテーブル、CloudWatch Logsだけに絞る
-- DynamoDB、Secrets Manager、CloudWatch LogsはKMSで暗号化
-- 必要に応じて実行環境をVPC内のプライベートサブネットで動かす
-- Box APIへの外向き通信はNAT Gatewayまたは制御されたegress経由にする
-- DynamoDBには契約書本文を保存しない
-- 監査ログは依頼者、対象ファイル、実行時刻、ステータス、エラー、処理時間を中心に保存する
-
-監査ログの例：
-
-```json
-{
-  "requestId": "uuid",
-  "source": "mcp",
-  "userId": "user-or-agent-id",
-  "boxFileId": "1234567890",
-  "fileName": "sample_risky_contract.pdf",
-  "standpoint": "受託者",
-  "status": "succeeded",
-  "startedAt": "2026-05-31T10:00:00.000Z",
-  "finishedAt": "2026-05-31T10:00:08.000Z",
-  "citationsCount": 4
-}
-```
-
-## Bedrockの位置づけ
-
-Bedrockは主役にしません。
-
-このプロジェクトの主張は、契約書本文のレビューをBox AIで行い、Box権限とBox上のファイル管理を軸にすることです。
-Bedrockを使う場合は、次のような非機密な補助処理に限定します。
-
-- 検索語の補正
-- ツール結果の非機密な整形
-- 監査ログの非機密な要約
-
-契約書本文、条文、出典スニペットをBedrockへ渡す場合は、顧客のセキュリティ要件、リージョン、ログ保持、モデル利用ポリシーを別途設計する必要があります。
-このPoCの推奨構成では、契約書本文の読解はBox AIに寄せます。
+MCPホストはユーザーの自然文依頼を解釈し、必要なMCPツールを選択します。
+このサーバーは、Box APIとBox AI APIを呼び出し、契約レビュー業務に必要な結果を返します。
 
 ## 主なMCPツール
 
-| ツール | 内容 | 使うBox機能 |
-|------|------|-----------|
-| `box_review_contract` | 日本語契約書を法務観点でレビュー。重大度順の懸念点、推奨アクション、出典を返す | Box AI `/ai/ask` |
-| `box_find_contracts` | 会社名や契約種別などの自然文から、Box上の契約書PDF候補を検索する | Box Search API + extracted_text |
-| `box_extract_contract` | 契約相手方、期間、自動更新、解約予告、金額、準拠法などを構造化抽出 | Box AI `/ai/extract_structured` |
-| `box_governance_scan` | PII・機密情報を検出し、リスクバンドに集約 | Boxテキスト表現 + ポリシールール |
-| `box_writeback_metadata` | 抽出・判定結果をエンタープライズメタデータとして書き戻し | Box Metadata API |
-| `box_post_summary_comment` | レビュー要約をBoxファイルのコメントとして残す | Box Comments API |
-| `box_ai_ask` | Box内のファイルを根拠に、出典付きで質問応答 | Box AI `/ai/ask` |
+| ツール | 内容 |
+|------|------|
+| `box_find_contracts` | 会社名や契約種別などの自然文から、Box上の契約書PDF候補を検索 |
+| `box_review_contract` | 契約書を法務観点でレビューし、懸念点、重大度、推奨アクション、出典を返す |
+| `box_extract_contract` | 契約相手方、期間、自動更新、解約予告、金額、準拠法などを構造化抽出 |
+| `box_governance_scan` | PIIや機密情報の可能性を検出し、リスクバンドに集約 |
+| `box_writeback_metadata` | 抽出・判定結果をBox Metadataへ書き戻す |
+| `box_post_summary_comment` | レビュー要約をBoxファイルのコメントとして残す |
+| `box_ai_ask` | Box内ファイルを根拠に、出典付きで質問応答 |
 
-## パフォーマンス方針
+## 契約レビュー機能
 
-現在の自然文検索は次の順序で動きます。
+中心となるツールは `box_review_contract` です。
+
+入力として、次のいずれかで契約書を指定できます。
+
+- `contractQuery`: 会社名や契約種別を含む自然文
+- `boxUrl`: BoxファイルURL
+- `fileName`: PDFファイル名
+- `fileId`: Box file ID
+
+`contractQuery` を使うと、ユーザーはBox file IDを知らなくても契約書を指定できます。
+
+例：
 
 ```text
-Box Search
-  → 上位候補を取得
-  → PDF本文を取得
-  → 入力語をすべて含む候補だけ残す
+グローバルコマースとの業務委託契約
 ```
 
-全PDFを総当たりするのではなく、Box Searchの上位候補だけ本文照合します。
-ただし、対象フォルダや候補数が大きくなると遅くなる可能性があります。
+レビュー立場は次の2つです。
 
-本番では次を優先します。
+- `受託者`
+- `委託者`
 
-- `BOX_SEARCH_FOLDER_ID` で検索対象を業務フォルダに限定
-- 契約相手方、契約種別、締結日などをBox Metadata化
-- メタデータ検索を優先し、本文検索は補助にする
-- Box Webhookでファイル追加・更新イベントを拾い、事前に検索補助情報を整える
-- PDF本文や検索結果の短時間キャッシュを検討
+レビュー観点：
+
+- 一方的に不利な条項
+- 解約・中途解約の条件
+- 自動更新の妥当性
+- 損害賠償の上限・範囲
+- 秘密保持の範囲と期間
+- 知的財産権の帰属
+- 準拠法・管轄
+- 曖昧で解釈が割れる表現
+
+出力には、総評、懸念点、重大度、推奨アクション、Box AI citationsを含みます。
+
+## 契約書検索の設計
+
+`box_find_contracts` と `contractQuery` は、自然文で対象契約書を探すための機能です。
+
+検索は2段階で行います。
+
+```text
+1. Box Search APIで候補PDFを取得
+2. 候補PDFの extracted_text を取得し、検索語をすべて含むものだけに絞り込み
+```
+
+Box Search APIでは、ファイル名だけでなく本文も検索対象にします。
+
+```text
+contentTypes: ["name", "file_content"]
+```
+
+その後、`extracted_text` を使って表記ゆれを吸収します。
+例えば、本文に `グローバル・コマース` と書かれていて、ユーザーが `グローバルコマース` と入力した場合でも、ローカル側の正規化で同一視できます。
+
+検索対象フォルダは `BOX_SEARCH_FOLDER_ID` で限定できます。
+本番では、契約書フォルダや法務部門フォルダに限定する前提です。
+
+## データ境界
+
+このサーバーは、契約書本文を外部LLMに送る設計ではありません。
+
+```text
+契約書PDF: Boxに保存
+契約書本文のAIレビュー: Box AI API
+MCPサーバー: 検索語、ファイルID、レビュー結果、出典スニペットを処理
+MCPホスト: ユーザーとの対話、ツール選択、結果表示
+```
+
+正確には、レビュー結果や出典スニペットはMCPサーバーとMCPホストに返ります。
+そのため「データが一切Box外に出ない」ではなく、「契約書本文を外部LLMに渡さず、Box AIとBox権限を軸に処理する」が設計上の主張です。
+
+## 認証と権限
+
+Box認証は `src/box.ts` に集約しています。
+
+対応する認証方式：
+
+- Developer Token
+- Client Credentials Grant（CCG）
+
+CCGでは次のどちらかで動作します。
+
+- `BOX_ENTERPRISE_ID`: サービスアカウントとして動作
+- `BOX_USER_ID`: as-user構成
+
+PoCではサービスアカウント運用を想定しています。
+本番では、依頼者本人のBox権限に沿って検索・レビューできるas-user構成が理想です。
+
+## ガバナンス機能
+
+`box_governance_scan` は、Boxの `extracted_text` 表現を取得し、正規表現ベースでPIIや機密情報らしき文字列を検出します。
+
+現状はPoC実装です。
+本番では、企業の情報分類ポリシー、DLPルール、Box Governance設計に合わせてルール化します。
+
+## メタデータ・コメント連携
+
+契約レビューや抽出結果は、Box上に戻すことを想定しています。
+
+- `box_writeback_metadata`
+  - Box Metadata Templateに抽出結果やリスク分類を書き戻す
+- `box_post_summary_comment`
+  - Boxファイル上にレビュー要約をコメントとして残す
+
+これにより、AIレビュー結果を一過性の回答で終わらせず、Box上の監査・運用文脈に戻せます。
+
+## 本番運用の考え方
+
+本番では、MCPツール実行層を社内の実行基盤に配置し、認証情報管理、監査ログ、監視、権限制御を整えます。
+AWSに載せる場合は、Lambdaやコンテナ実行基盤、Secrets Manager、DynamoDB、CloudWatchなどを組み合わせる構成が考えられます。
+
+重要なのは、クラウド基盤を主役にすることではなく、契約書本文のレビューをBox AIに寄せ、Boxの権限と監査の文脈で運用することです。
+
+```mermaid
+flowchart LR
+  Host["MCPホスト\nClaude Desktop / Enterprise Agent"] --> Runtime["MCP Tool Runtime\nTypeScript / Node.js"]
+
+  subgraph RuntimePlatform["実行基盤\n例: AWS Lambda / コンテナ"]
+    Runtime
+    Secrets["Secrets管理\nBox認証情報"]
+    Audit["監査ログ\n依頼・対象・結果"]
+    Monitor["ログ・メトリクス"]
+  end
+
+  subgraph Box["Box"]
+    BoxFiles["契約書PDF"]
+    BoxAPI["Box Content / Metadata API"]
+    BoxAI["Box AI API"]
+  end
+
+  Runtime --> Secrets
+  Runtime --> BoxAPI
+  Runtime --> BoxAI
+  Runtime --> Audit
+  Runtime --> Monitor
+  BoxAPI --> BoxFiles
+  BoxAI --> BoxFiles
+```
+
+本番設計で重視する点：
+
+- Box認証情報はSecrets Managerなどの秘密情報管理サービスで管理
+- 実行ロールやサービスアカウントは最小権限
+- 監査ログには契約書本文を保存しない
+- 監査ログは依頼者、対象ファイル、実行時刻、ステータス、処理時間を中心に保存
+- 必要に応じてネットワーク経路や外向き通信を制御する
+- 契約書本文を外部LLMへ渡す場合は、顧客のセキュリティ要件に基づき別途設計する
 
 ## セットアップ
 
-### 1. Boxアプリを作成
-
-1. Box Developer ConsoleでCustom Appを作成
-2. 認証方式を選択
-   - 短時間デモ：Developer Token
-   - 継続利用：Client Credentials Grant（CCG）
-3. 必要なスコープを有効化
-   - ファイル読み取り
-   - Box AI
-   - メタデータ
-   - コメント
-
-### 2. 環境変数を設定
+### 1. 環境変数
 
 ```bash
 cp .env.template .env
+```
+
+Developer Tokenで動かす場合：
+
+```bash
+BOX_DEV_TOKEN=
 ```
 
 CCGで動かす場合：
@@ -253,31 +241,26 @@ BOX_CLIENT_SECRET=
 BOX_ENTERPRISE_ID=
 ```
 
-自然文検索の対象フォルダを限定する場合：
+検索対象フォルダを限定する場合：
 
 ```bash
 BOX_SEARCH_FOLDER_ID=
 ```
 
-`BOX_SEARCH_FOLDER_ID` には、業務ユーザーが普段使うBoxフォルダのIDを設定します。
-そのフォルダをBoxサービスアカウントに共有しておくと、専用フォルダにファイルをコピーせずにデモできます。
-
-### 3. ビルド
+### 2. ビルド
 
 ```bash
 npm install
 npm run build
 ```
 
-### 4. MCPサーバーとして起動
+### 3. MCPサーバー起動
 
 ```bash
 npm start
 ```
 
 Claude DesktopなどのMCPホストから使う場合は、`dist/index.js` をMCP設定に登録します。
-
-設定例：
 
 ```json
 {
@@ -293,31 +276,20 @@ Claude DesktopなどのMCPホストから使う場合は、`dist/index.js` をMC
 }
 ```
 
-Claude Desktopでの依頼例：
-
-```text
-グローバルコマースとの業務委託契約について、受託者側で危ない記載がないかレビューして
-```
-
-## デモ用ファイル
-
-脆弱な条項を意図的に含む `sample_risky_contract.pdf` を、通常のBox画面で見える共有フォルダへ配置します。
-業務ユーザーが普段使うBoxフォルダをサービスアカウントに共有する想定です。
-
 ## 既知の制約
 
 - 無料Box Developer環境ではas-userが使えない場合があるため、PoCではCCGのサービスアカウント運用
-- 本番ではas-userにより、依頼者本人のBox権限に沿った検索・レビューにするのが理想
-- `box_governance_scan` のPII検出は正規表現ベースのPoC
+- `box_governance_scan` のPII検出は正規表現ベース
 - `box_writeback_metadata` はBox Metadata Templateの事前作成が前提
-- MCPサーバーに返るレビュー結果と出典スニペットはBox外に出るため、AIホスト側の利用・保存ポリシー設計が必要
+- Box Searchは表記ゆれに影響されるため、必要に応じてメタデータ検索や別名辞書を組み合わせる
+- MCPホストに返るレビュー結果と出典スニペットはBox外に出るため、AIホスト側の利用・保存ポリシー設計が必要
 
 ## 技術スタック
 
 - TypeScript
 - Node.js
-- `box-typescript-sdk-gen`
 - `@modelcontextprotocol/sdk`
+- `box-typescript-sdk-gen`
 - `zod`
 - Box AI API
 - Box Content API

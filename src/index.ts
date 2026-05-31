@@ -98,18 +98,52 @@ server.registerTool(
   {
     title: "Review contract risks (JP)",
     description:
-      "Review a Japanese contract from the 委託者 or 受託者 standpoint. If the user identifies the target by company name or contract type, pass that natural-language target as contractQuery. The contract can also be identified by Box URL, file name, or file ID. Returns legal concerns, severity, recommended actions, and citations.",
+      "Review a contract from the 委託者 or 受託者 standpoint. If the user identifies the target by company name or contract type, pass that natural-language target as contractQuery. The contract can also be identified by Box URL, file name, or file ID. Returns legal concerns, severity, recommended actions, and citations. When the user wants the review recorded on the Box file, set writeMetadata or metadataTemplateKey to write review status, standpoint, summary, severity, and citation count to Box Metadata.",
     inputSchema: {
       contractQuery: z.string().optional().describe("Natural-language target contract query, for example: グローバルコマースとの業務委託契約"),
       boxUrl: z.string().optional().describe("Box file URL, when the user pasted a Box link"),
       fileName: z.string().optional().describe("Contract PDF file name to search for in Box"),
       fileId: z.string().optional().describe("Box file ID, for fallback/debug use"),
       standpoint: z.enum(["委託者", "受託者"]).default("受託者").describe("Review standpoint inferred from the user's request"),
+      writeMetadata: z.boolean().optional().describe("Write review results to Box Metadata. Uses metadataTemplateKey or BOX_REVIEW_METADATA_TEMPLATE_KEY."),
+      metadataTemplateKey: z.string().optional().describe("Box Metadata template key for writing review results"),
+      metadataScope: z.enum(["enterprise", "global"]).default("enterprise").describe("Metadata scope. Use enterprise for custom templates, global for Box global properties."),
+      metadataFieldMapping: z.object({
+        reviewStatus: z.string().optional(),
+        reviewedAt: z.string().optional(),
+        reviewStandpoint: z.string().optional(),
+        reviewSummary: z.string().optional(),
+        highestSeverity: z.string().optional(),
+        citationsCount: z.string().optional(),
+      }).optional().describe("Optional mapping from logical review fields to Box Metadata template field keys"),
+      metadata: z.record(z.unknown()).optional().describe("Additional metadata fields to write alongside the derived review fields"),
     },
   },
-  async ({ fileId, boxUrl, fileName, contractQuery, standpoint }) => {
+  async ({
+    fileId,
+    boxUrl,
+    fileName,
+    contractQuery,
+    standpoint,
+    writeMetadata,
+    metadataTemplateKey,
+    metadataScope,
+    metadataFieldMapping,
+    metadata,
+  }) => {
     try {
-      return ok(await reviewContract(client, { fileId, boxUrl, fileName, contractQuery, standpoint }));
+      return ok(await reviewContract(client, {
+        fileId,
+        boxUrl,
+        fileName,
+        contractQuery,
+        standpoint,
+        writeMetadata,
+        metadataTemplateKey,
+        metadataScope,
+        metadataFieldMapping,
+        metadata,
+      }));
     } catch (e) {
       return fail(e);
     }
@@ -138,16 +172,17 @@ server.registerTool(
   {
     title: "Write metadata back to Box",
     description:
-      "Persist extracted/derived fields onto a Box file as enterprise metadata (auditable record).",
+      "Persist extracted/derived fields onto a Box file as metadata (auditable record). Creates the metadata instance if needed, or updates it if it already exists.",
     inputSchema: {
       fileId: z.string(),
       templateKey: z.string().describe("Enterprise metadata template key"),
+      scope: z.enum(["enterprise", "global"]).default("enterprise").describe("Metadata scope. Use enterprise for custom templates, global for Box global properties."),
       data: z.record(z.unknown()).describe("Key/value pairs to write"),
     },
   },
-  async ({ fileId, templateKey, data }) => {
+  async ({ fileId, templateKey, scope, data }) => {
     try {
-      return ok(await writebackMetadata(client, { fileId, templateKey, data }));
+      return ok(await writebackMetadata(client, { fileId, templateKey, scope, data }));
     } catch (e) {
       return fail(e);
     }

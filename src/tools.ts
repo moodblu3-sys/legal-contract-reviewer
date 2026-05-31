@@ -7,12 +7,30 @@ import { readByteStream } from "box-typescript-sdk-gen/internal";
 import { GOVERNANCE_RULES, rollupRisk, type RiskBand } from "./governance.js";
 
 export type ContractReviewStandpoint = "委託者" | "受託者";
+type MetadataScope = "enterprise" | "global";
+
+type ReviewMetadataFieldMapping = Partial<{
+  reviewStatus: string;
+  reviewedAt: string;
+  reviewStandpoint: string;
+  reviewSummary: string;
+  highestSeverity: string;
+  citationsCount: string;
+}>;
 
 type ContractFileReference = {
   fileId?: string;
   boxUrl?: string;
   fileName?: string;
   contractQuery?: string;
+};
+
+type ReviewMetadataOptions = {
+  writeMetadata?: boolean;
+  metadataTemplateKey?: string;
+  metadataScope?: MetadataScope;
+  metadataFieldMapping?: ReviewMetadataFieldMapping;
+  metadata?: Record<string, unknown>;
 };
 
 type ResolvedContractFile = {
@@ -171,6 +189,67 @@ function normalizeSearchText(text: string) {
     .replace(/[・\s　、。,.!?！？「」『』（）()\-_]/g, "");
 }
 
+function getBoxStatusCode(error: unknown): number | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  const maybeError = error as { responseInfo?: { statusCode?: number } };
+  return maybeError.responseInfo?.statusCode;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function escapeMetadataPath(key: string): string {
+  return `/${key.replace(/~/g, "~0").replace(/\//g, "~1")}`;
+}
+
+function extractReviewSummary(answer: string): string {
+  const trimmed = answer.trim();
+  const summaryMatch = trimmed.match(/総評[：:\s]*(.+?)(?:\n{2,}|\n[-【]|$)/s);
+  const summary = summaryMatch?.[1]?.trim() || trimmed.split("\n").find((line) => line.trim())?.trim() || "";
+  return summary.length > 500 ? `${summary.slice(0, 497)}...` : summary;
+}
+
+function detectHighestSeverity(answer: string): "高" | "中" | "低" | "不明" {
+  if (/重大度[：:\s]*高|重大度[（(]\s*高\s*[）)]|【重大度[：:\s]*高/.test(answer)) return "高";
+  if (/重大度[：:\s]*中|重大度[（(]\s*中\s*[）)]|【重大度[：:\s]*中/.test(answer)) return "中";
+  if (/重大度[：:\s]*低|重大度[（(]\s*低\s*[）)]|【重大度[：:\s]*低/.test(answer)) return "低";
+  return "不明";
+}
+
+function buildReviewMetadata(args: {
+  answer: string;
+  standpoint: ContractReviewStandpoint;
+  citationsCount: number;
+  fieldMapping?: ReviewMetadataFieldMapping;
+  metadata?: Record<string, unknown>;
+}) {
+  const values = {
+    reviewStatus: "完了",
+    reviewedAt: new Date().toISOString(),
+    reviewStandpoint: args.standpoint,
+    reviewSummary: extractReviewSummary(args.answer),
+    highestSeverity: detectHighestSeverity(args.answer),
+    citationsCount: args.citationsCount,
+  };
+  const defaultMapping: Required<ReviewMetadataFieldMapping> = {
+    reviewStatus: "reviewStatus",
+    reviewedAt: "reviewedAt",
+    reviewStandpoint: "reviewStandpoint",
+    reviewSummary: "reviewSummary",
+    highestSeverity: "highestSeverity",
+    citationsCount: "citationsCount",
+  };
+  const data: Record<string, unknown> = {};
+  for (const [logicalKey, value] of Object.entries(values)) {
+    const templateKey =
+      args.fieldMapping?.[logicalKey as keyof ReviewMetadataFieldMapping] ??
+      defaultMapping[logicalKey as keyof ReviewMetadataFieldMapping];
+    if (templateKey) data[templateKey] = value;
+  }
+  return { ...data, ...(args.metadata ?? {}) };
+}
+
 export async function findContractCandidates(
   client: BoxClient,
   args: { query: string; limit?: number }
@@ -249,7 +328,7 @@ export async function extractContractFields(
 /** 3) Review a Japanese contract from a specific legal standpoint. */
 export async function reviewContract(
   client: BoxClient,
-  args: ContractFileReference & { standpoint?: ContractReviewStandpoint }
+  args: ContractFileReference & { standpoint?: ContractReviewStandpoint } & ReviewMetadataOptions
 ) {
   const standpoint = args.standpoint ?? "受託者";
   const file = await resolveContractFile(client, args);
@@ -287,7 +366,45 @@ export async function reviewContract(
       file: c.name ?? c.id,
       snippet: c.content,
     })) ?? [];
-  return { file, standpoint, answer: res?.answer ?? "", citations };
+  const answer = res?.answer ?? "";
+  const shouldWriteMetadata =
+    args.writeMetadata === true ||
+    Boolean(args.metadataTemplateKey) ||
+    Boolean(process.env.BOX_REVIEW_METADATA_TEMPLATE_KEY);
+  const metadataTemplateKey = args.metadataTemplateKey ?? process.env.BOX_REVIEW_METADATA_TEMPLATE_KEY;
+
+  if (!shouldWriteMetadata) {
+    return { file, standpoint, answer, citations };
+  }
+
+  if (!metadataTemplateKey) {
+    throw new Error(
+      "レビュー結果をメタデータへ書き込むには metadataTemplateKey または BOX_REVIEW_METADATA_TEMPLATE_KEY が必要です。"
+    );
+  }
+
+  let metadataWriteback;
+  try {
+    metadataWriteback = await writebackMetadata(client, {
+      fileId: file.id,
+      templateKey: metadataTemplateKey,
+      scope: args.metadataScope,
+      data: buildReviewMetadata({
+        answer,
+        standpoint,
+        citationsCount: citations.length,
+        fieldMapping: args.metadataFieldMapping,
+        metadata: args.metadata,
+      }),
+    });
+  } catch (error) {
+    metadataWriteback = {
+      applied: false,
+      operation: "failed",
+      error: getErrorMessage(error),
+    };
+  }
+  return { file, standpoint, answer, citations, metadataWriteback };
 }
 
 /** 4) Governance scan: detect PII / sensitive content, roll up to a risk band. */
@@ -310,15 +427,41 @@ export async function governanceScan(
 /** 5) Write a key/value back to the file as Box metadata (auditable record). */
 export async function writebackMetadata(
   client: BoxClient,
-  args: { fileId: string; templateKey: string; data: Record<string, unknown> }
+  args: { fileId: string; templateKey: string; data: Record<string, unknown>; scope?: MetadataScope }
 ) {
-  const res = await client.fileMetadata.createFileMetadataById(
+  const scope = args.scope ?? "enterprise";
+  const entries = Object.entries(args.data).filter(([, value]) => value !== undefined);
+  if (entries.length === 0) return { applied: false, operation: "skipped", reason: "No metadata fields supplied" };
+
+  try {
+    const res = await client.fileMetadata.createFileMetadataById(
+      args.fileId,
+      scope,
+      args.templateKey,
+      Object.fromEntries(entries) as never
+    );
+    return { applied: true, operation: "created", instanceId: (res as { id?: string })?.id };
+  } catch (error) {
+    if (getBoxStatusCode(error) !== 409) throw error;
+  }
+
+  const existing = (await client.fileMetadata.getFileMetadataById(
     args.fileId,
-    "enterprise" as never,
+    scope,
+    args.templateKey
+  )) as Record<string, unknown>;
+  const operations = entries.map(([key, value]) => ({
+    op: Object.prototype.hasOwnProperty.call(existing, key) ? "replace" : "add",
+    path: escapeMetadataPath(key),
+    value,
+  }));
+  const res = await client.fileMetadata.updateFileMetadataById(
+    args.fileId,
+    scope,
     args.templateKey,
-    args.data as never
+    operations as never
   );
-  return { applied: true, instanceId: (res as { id?: string })?.id };
+  return { applied: true, operation: "updated", instanceId: (res as { id?: string })?.id };
 }
 
 /** 6) Post a human-readable summary as a Box comment (review trail in-context). */
