@@ -521,6 +521,73 @@
       color: var(--gray-600);
       flex-shrink: 0;
     }
+
+    /* Layer architecture */
+    .layer-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      margin-bottom: 4px;
+    }
+
+    .layer-label {
+      width: 160px;
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 12px;
+      border-radius: 8px 0 0 8px;
+      display: flex;
+      align-items: center;
+    }
+
+    .layer-content {
+      flex: 1;
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 0 8px 8px 0;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .layer-content .layer-item {
+      background: rgba(255,255,255,0.7);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Use case box for hearing slide */
+    .uc-box {
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .uc-box h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--box-blue);
+      margin-bottom: 8px;
+    }
+
+    .uc-box .uc-field {
+      font-size: 12px;
+      color: var(--gray-700);
+      padding: 4px 0;
+      display: flex;
+      gap: 8px;
+    }
+
+    .uc-box .uc-field span {
+      font-weight: 600;
+      color: var(--gray-900);
+      min-width: 70px;
+    }
   </style>
 </head>
 <body>
@@ -529,7 +596,7 @@
   <div class="slide slide-cover active" id="slide-1">
     <div class="cover-badge">CONFIDENTIAL</div>
     <h1>AI を活用した<br>業務効率化基盤のご提案</h1>
-    <div class="cover-sub">Box + AI で実現する契約管理・承認フローの変革</div>
+    <div class="cover-sub">Box + AI で実現する契約管理の変革</div>
     <div class="cover-meta">
       御社名 様（従業員 3,000名）<br>
       Box株式会社 Consulting<br>
@@ -538,513 +605,384 @@
     <div class="slide-footer">Box株式会社 | Confidential</div>
   </div>
 
-  <!-- Slide 2: Agenda -->
+  <!-- Slide 2: Today's Goal -->
   <div class="slide slide-content" id="slide-2">
-    <h2>本日のアジェンダ</h2>
-    <div class="slide-subtitle">30分間で2つのライブデモを含む構成でお話しします</div>
-    <div style="flex:1; display:flex; align-items:center;">
-      <div style="width:100%;">
-        <div class="key-point">
-          <div class="kp-num">1</div>
-          <div>
-            <h4>御社の課題の確認（5分）</h4>
-            <p>オンプレファイルサーバー＋メール運用における業務課題の整理</p>
-          </div>
-        </div>
-        <div class="key-point">
-          <div class="kp-num">2</div>
-          <div>
-            <h4>デモ1：契約書AI条項チェック（8分）<span class="badge box" style="margin-left:8px;">Box AI</span></h4>
-            <p>Box AI による契約書レビュー自動化をライブでご体験いただきます</p>
-          </div>
-        </div>
-        <div class="key-point">
-          <div class="kp-num">3</div>
-          <div>
-            <h4>デモ2：稟議書AI承認フロー（8分）<span class="badge both" style="margin-left:8px;">Box AI + Relay</span></h4>
-            <p>AIによる稟議書の自動分類から承認ルート決定・ワークフロー実行までをデモ</p>
-          </div>
-        </div>
-        <div class="key-point">
-          <div class="kp-num">4</div>
-          <div>
-            <h4>アーキテクチャ + 段階的移行計画（7分）</h4>
-            <p>Box中核のアーキテクチャ、段階的データ移行、将来のAIチャット構想</p>
-          </div>
-        </div>
-        <div class="key-point">
-          <div class="kp-num">5</div>
-          <div>
-            <h4>ROI + 次のステップ（2分）</h4>
-            <p>期待効果とPoC計画のご提案</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="slide-footer dark">Box株式会社 | Confidential<span></span></div>
-  </div>
-
-  <!-- Slide 3: Section - 課題確認 -->
-  <div class="slide slide-section" id="slide-3">
-    <div class="section-num">01</div>
-    <h2>御社の課題</h2>
-    <p>オンプレ運用における業務課題とAI基盤整備のニーズ</p>
-    <div class="slide-footer">Box株式会社 | Confidential</div>
-  </div>
-
-  <!-- Slide 4: Current Challenges -->
-  <div class="slide slide-content" id="slide-4">
-    <h2>現状の課題認識</h2>
-    <div class="slide-subtitle">従業員3,000名規模・オンプレファイルサーバー＋メール運用のお客様に共通する課題</div>
-    <div class="grid-2" style="align-items:start;">
-      <div>
-        <div class="problem-item">
-          <div class="problem-icon red">&#9888;&#65039;</div>
-          <div class="problem-text">
-            <h4>ドキュメント管理の分散</h4>
-            <p>オンプレファイルサーバー + メール添付に文書が散在。検索性・アクセス管理が不十分で、ガバナンスリスクあり。</p>
-          </div>
-        </div>
-        <div class="problem-item">
-          <div class="problem-icon orange">&#9200;</div>
-          <div class="problem-text">
-            <h4>契約書レビューの工数</h4>
-            <p>法務部門の手動チェックに1件あたり平均2〜3時間。条項の見落としリスクも存在。</p>
-          </div>
-        </div>
-        <div class="problem-item">
-          <div class="problem-icon orange">&#128203;</div>
-          <div class="problem-text">
-            <h4>稟議の承認遅延</h4>
-            <p>紙・メールベースの承認フローで、承認に平均5営業日。承認状況の可視化も困難。</p>
-          </div>
-        </div>
-        <div class="problem-item">
-          <div class="problem-icon blue">&#128172;</div>
-          <div class="problem-text">
-            <h4>社内問い合わせの負荷</h4>
-            <p>同じ質問への繰り返し回答で、管理部門の工数が逼迫。ナレッジが属人化。</p>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div class="card highlight" style="margin-bottom:20px;">
-          <div class="card-icon">&#127919;</div>
-          <h3>本日のご提案アプローチ</h3>
-          <p style="font-size:15px; line-height:1.8;">
-            <strong>2つのユースケースをライブデモ</strong>し、<br>将来構想を含む段階的な導入をご提案
-          </p>
-        </div>
-        <div class="card">
-          <h3>3つのユースケース</h3>
-          <ul>
-            <li><strong>UC1: 契約書の条項チェック自動化</strong> <span class="badge box">本日デモ</span></li>
-            <li><strong>UC2: 稟議書の承認フロー自動化</strong> <span class="badge box">本日デモ</span></li>
-            <li>UC3: 社内問い合わせ対応のAI化 <span class="badge phase">将来構想</span></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="slide-footer dark">Box株式会社 | Confidential</div>
-  </div>
-
-  <!-- Slide 5: Section - Demo 1 -->
-  <div class="slide slide-section" id="slide-5">
-    <div class="section-num">02</div>
-    <h2>デモ&#9312; 契約書AI条項チェック</h2>
-    <p>Box AI を活用した契約書レビューの自動化</p>
-    <div class="slide-footer">Box株式会社 | Confidential</div>
-  </div>
-
-  <!-- Slide 6: Demo 1 Overview -->
-  <div class="slide slide-content" id="slide-6">
-    <h2>UC1: 契約書AI条項チェック</h2>
-    <div class="slide-subtitle">Box AI + Metadata + ガバナンスで実現する契約書レビューの自動化</div>
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-      <div class="grid-3" style="margin-bottom:24px;">
-        <div class="card">
-          <div class="card-tag box">Box Content</div>
-          <div class="card-icon">&#128196;</div>
-          <h3>Step 1: 契約書の格納</h3>
-          <p>営業が契約書PDFをBoxにアップロード。7段階の権限設定でセキュアに管理。</p>
-        </div>
-        <div class="card highlight">
-          <div class="card-tag box">Box AI</div>
-          <div class="card-icon">&#129302;</div>
-          <h3>Step 2: AI自動レビュー</h3>
-          <p>Box AI が8つの観点で条項を分析。リスクレベル判定、構造化データ抽出を自動実行。</p>
-        </div>
-        <div class="card">
-          <div class="card-tag box">Box Metadata</div>
-          <div class="card-icon">&#127991;&#65039;</div>
-          <h3>Step 3: 結果の記録</h3>
-          <p>レビュー結果をメタデータとして書戻し。監査証跡を自動生成、横断検索に活用。</p>
-        </div>
-      </div>
-      <div class="card" style="text-align:center; padding:16px;">
-        <p style="font-size:14px; color:var(--gray-600);">
-          <strong>ポイント：</strong>契約書の内容はBox AIの境界内で処理され、外部に漏洩しません。
-          保険業界に求められるセキュリティ要件を満たしながら、AI活用を実現します。
+    <h2>本日のゴール</h2>
+    <div class="slide-subtitle">御社の課題を明確にし、解決後の青写真を一緒に描く</div>
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:24px;">
+      <div class="card highlight" style="padding:20px 28px;">
+        <h3 style="color:var(--box-blue); margin-bottom:8px;">進め方</h3>
+        <p style="font-size:15px; line-height:2;">
+          &#9312; まず御社の状況をお伺い<br>
+          &#9313; 動くものを見せながら解決策をディスカッション<br>
+          &#9314; 次のステップを合意
         </p>
       </div>
-    </div>
-    <div class="slide-footer dark">Box株式会社 | Confidential</div>
-  </div>
-
-  <!-- Slide 7: Live Demo 1 -->
-  <div class="slide slide-content" id="slide-7">
-    <h2>ライブデモ &#9312;</h2>
-    <div class="slide-subtitle">契約書AI条項チェックシステムのデモンストレーション</div>
-    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
-      <div style="text-align:center;">
-        <div style="font-size:80px; margin-bottom:24px;">&#128421;&#65039;</div>
-        <h3 style="font-size:24px; margin-bottom:16px;">デモアプリに切り替え</h3>
-        <p style="font-size:16px; color:var(--gray-600); max-width:600px; line-height:1.8;">
-          契約書AIレビューシステムのデモ環境を開き、<br>
-          実際の契約書レビューフローをお見せします。
-        </p>
-        <div style="margin-top:32px; display:flex; gap:16px; justify-content:center;">
-          <div class="card" style="padding:12px 20px; display:inline-block;">
-            <strong>&#9312;</strong> 契約書の選択・アップロード
-          </div>
-          <div class="card" style="padding:12px 20px; display:inline-block;">
-            <strong>&#9313;</strong> AIレビューの実行
-          </div>
-          <div class="card" style="padding:12px 20px; display:inline-block;">
-            <strong>&#9314;</strong> リスク評価の確認
-          </div>
-          <div class="card" style="padding:12px 20px; display:inline-block;">
-            <strong>&#9315;</strong> Metadata書戻し
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="slide-footer dark">Box株式会社 | Confidential</div>
-  </div>
-
-  <!-- Slide 8: Section - Demo 2 -->
-  <div class="slide slide-section" id="slide-8">
-    <div class="section-num">03</div>
-    <h2>デモ&#9313; 稟議書AI承認フロー</h2>
-    <p>Box AI + Box Relay による承認ワークフロー自動化</p>
-    <div class="slide-footer">Box株式会社 | Confidential</div>
-  </div>
-
-  <!-- Slide 9: Demo 2 Overview -->
-  <div class="slide slide-content" id="slide-9">
-    <h2>UC2: 稟議書AI承認フロー</h2>
-    <div class="slide-subtitle">Box AI がドキュメントを読み取り、Box Relay で承認ワークフローを自動実行</div>
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;">
       <div style="margin-bottom:8px;">
         <div class="flow-steps">
-          <div class="flow-step active-step">&#128196; 稟議書アップロード<br><small>Boxフォルダに格納</small></div>
+          <div class="flow-step active-step">&#128483; ヒアリング<br><small>8分</small></div>
           <div class="flow-arrow">&#10132;</div>
-          <div class="flow-step active-step">&#129302; AI自動分類<br><small>カテゴリ・金額・添付判定</small></div>
+          <div class="flow-step">&#128161; 解決コンセプト<br><small>5分</small></div>
           <div class="flow-arrow">&#10132;</div>
-          <div class="flow-step active-step">&#128256; 承認ルート決定<br><small>金額・カテゴリで分岐</small></div>
+          <div class="flow-step">&#128421; デモ<br><small>10分</small></div>
           <div class="flow-arrow">&#10132;</div>
-          <div class="flow-step active-step">&#9989; Box Relay実行<br><small>自動承認ワークフロー</small></div>
-          <div class="flow-arrow">&#10132;</div>
-          <div class="flow-step">&#127991;&#65039; メタデータ記録<br><small>監査証跡の自動生成</small></div>
+          <div class="flow-step">&#128203; ネクストステップ<br><small>3分</small></div>
         </div>
       </div>
-      <div class="grid-2" style="flex:0;">
-        <div class="card highlight">
-          <h3>&#129302; Box AI が行うこと</h3>
-          <ul>
-            <li>稟議書の内容を読み取り、<strong>カテゴリ</strong>を自動分類（設備投資/採用/外注 等）</li>
-            <li><strong>申請金額</strong>を抽出し、承認ルートの分岐条件に使用</li>
-            <li><strong>添付書類の有無</strong>をチェック（見積書・仕様書の添付漏れ検知）</li>
-            <li>分類結果をメタデータに記録 → <strong>監査証跡</strong>として活用</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>&#128256; Box Relay が行うこと</h3>
-          <ul>
-            <li>金額に応じた<strong>承認ルートの自動選択</strong>（100万未満:部長 / 1000万未満:本部長 / それ以上:役員）</li>
-            <li>承認者へ<strong>自動通知</strong>（メール + Box通知）</li>
-            <li>承認・差戻しの<strong>ステータス管理</strong>と可視化</li>
-            <li>SLAベースの<strong>リマインダー自動送信</strong></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="slide-footer dark">Box株式会社 | Confidential</div>
-  </div>
-
-  <!-- Slide 10: Live Demo 2 -->
-  <div class="slide slide-content" id="slide-10">
-    <h2>ライブデモ &#9313;</h2>
-    <div class="slide-subtitle">稟議書AI承認フローのデモンストレーション</div>
-    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
-      <div style="text-align:center;">
-        <div style="font-size:80px; margin-bottom:24px;">&#128421;&#65039;</div>
-        <h3 style="font-size:24px; margin-bottom:16px;">デモアプリに切り替え</h3>
-        <p style="font-size:16px; color:var(--gray-600); max-width:600px; line-height:1.8;">
-          稟議書承認フローのデモ環境を開き、<br>
-          AI分類から承認完了までの一連のフローをお見せします。
+      <div class="card" style="text-align:center; padding:14px 20px;">
+        <p style="font-size:14px; color:var(--gray-700);">
+          <strong>前提：</strong>Box導入はほぼ決定の前提で、「どう活かすか」に集中します
         </p>
-        <div style="margin-top:32px; display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
-          <div class="card" style="padding:12px 20px; display:inline-block;">
-            <strong>&#9312;</strong> 稟議書のアップロード
-          </div>
-          <div class="card" style="padding:12px 20px; display:inline-block;">
-            <strong>&#9313;</strong> AI自動分類・金額抽出
-          </div>
-          <div class="card" style="padding:12px 20px; display:inline-block;">
-            <strong>&#9314;</strong> 承認ルート自動決定
-          </div>
-          <div class="card" style="padding:12px 20px; display:inline-block;">
-            <strong>&#9315;</strong> Relay承認フロー実行
-          </div>
-        </div>
       </div>
     </div>
     <div class="slide-footer dark">Box株式会社 | Confidential</div>
   </div>
 
-  <!-- Slide 11: Section - Architecture -->
-  <div class="slide slide-section" id="slide-11">
-    <div class="section-num">04</div>
-    <h2>アーキテクチャ</h2>
-    <p>Box を中核に据えた全体設計と段階的移行</p>
+  <!-- Slide 3: Section - Hearing -->
+  <div class="slide slide-section" id="slide-3">
+    <div class="section-num">01</div>
+    <h2>ヒアリング</h2>
+    <p>御社の課題と「あるべき姿」の確認</p>
     <div class="slide-footer">Box株式会社 | Confidential</div>
   </div>
 
-  <!-- Slide 12: Architecture Overview -->
-  <div class="slide slide-content" id="slide-12">
-    <h2>ソリューション全体像</h2>
-    <div class="slide-subtitle">Box Platform を「コンテンツの源泉」として中核に据え、適材適所でAI技術を組み合わせ</div>
-    <div style="flex:1;display:flex;flex-direction:column;gap:16px;justify-content:center;">
-      <div class="arch-box box-platform">
-        <div class="arch-label">BOX PLATFORM（中核）</div>
-        <div class="arch-items">
-          <div class="arch-item blue">Box Content<br><small>安全な文書管理</small></div>
-          <div class="arch-item blue">Box AI<br><small>条項分析・分類</small></div>
-          <div class="arch-item blue">Box Metadata<br><small>構造化データ</small></div>
-          <div class="arch-item blue">Box Shield<br><small>情報漏洩防止</small></div>
-          <div class="arch-item blue">Box Relay<br><small>承認ワークフロー</small></div>
-          <div class="arch-item blue">Box Sign<br><small>電子署名</small></div>
+  <!-- Slide 4: Hearing Sheet -->
+  <div class="slide slide-content" id="slide-4">
+    <h2>課題認識シート</h2>
+    <div class="slide-subtitle">ヒアリングを通じて、3つのユースケースの現状と課題を整理します</div>
+    <div class="grid-2" style="align-items:start;">
+      <div>
+        <div class="uc-box">
+          <h4>&#128196; 契約書レビュー</h4>
+          <div class="uc-field"><span>現状:</span>（ヒアリングで確認）</div>
+          <div class="uc-field"><span>課題:</span>（深掘りで明確化）</div>
+          <div class="uc-field"><span>あるべき姿:</span>（合意を目指す）</div>
+        </div>
+        <div class="uc-box">
+          <h4>&#128203; 稟議承認</h4>
+          <div class="uc-field"><span>現状:</span>（ヒアリングで確認）</div>
+          <div class="uc-field"><span>課題:</span>（深掘りで明確化）</div>
+          <div class="uc-field"><span>あるべき姿:</span>（合意を目指す）</div>
+        </div>
+        <div class="uc-box">
+          <h4>&#128172; 社内問い合わせ</h4>
+          <div class="uc-field"><span>現状:</span>（ヒアリングで確認）</div>
+          <div class="uc-field"><span>課題:</span>（深掘りで明確化）</div>
+          <div class="uc-field"><span>あるべき姿:</span>（合意を目指す）</div>
         </div>
       </div>
-      <div class="arch-flow-arrow">&#11021; Box API / Webhook</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-        <div class="arch-box" style="border-color:#7B1FA2;">
-          <div class="arch-label" style="color:#7B1FA2;">アプリケーション層（UC1 / UC2）</div>
-          <div class="arch-items">
-            <div class="arch-item">契約書レビューUI</div>
-            <div class="arch-item">稟議承認ダッシュボード</div>
-            <div class="arch-item">ガバナンスエンジン</div>
-          </div>
-        </div>
-        <div class="arch-box external-ai">
-          <div class="arch-label">外部AI / 連携（Phase 3 将来構想）</div>
-          <div class="arch-items">
-            <div class="arch-item yellow">Claude / GPT<br><small>高度な推論</small></div>
-            <div class="arch-item yellow">RAG Pipeline<br><small>全社ナレッジ</small></div>
-            <div class="arch-item">Slack / Teams<br><small>通知・チャット</small></div>
-          </div>
+      <div>
+        <div class="card highlight">
+          <h3>&#128270; ヒアリングのポイント</h3>
+          <ul>
+            <li>件数・頻度（月何件？年何件？）</li>
+            <li>所要時間（1件あたり何時間？）</li>
+            <li>属人化の度合い（誰しかできない？）</li>
+            <li>現在の保管場所（オンプレ？メール？）</li>
+          </ul>
         </div>
       </div>
+    </div>
+    <div class="card" style="margin-top:16px; text-align:center; padding:14px 20px;">
+      <p style="font-size:14px; color:var(--gray-700);">
+        &#10132; 本日は<strong>「契約業務」（契約書レビュー＋稟議チェック）</strong>にフォーカス
+      </p>
     </div>
     <div class="slide-footer dark">Box株式会社 | Confidential</div>
   </div>
 
-  <!-- Slide 13: Box vs External AI table -->
-  <div class="slide slide-content" id="slide-13">
-    <h2>Box単体 vs 外部AI の使い分け</h2>
-    <div class="slide-subtitle">UC1・UC2はBox完結、UC3は将来フェーズで外部AI活用</div>
-    <div style="flex:1;">
-      <table class="slide-table">
-        <thead>
-          <tr>
-            <th>ユースケース</th>
-            <th>実現方式</th>
-            <th>フェーズ</th>
-            <th>技術選定の根拠</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>UC1: 契約書の条項チェック</strong></td>
-            <td><span class="badge box">Box AI</span></td>
-            <td><span class="badge box">Phase 1</span></td>
-            <td>契約書の内容がBox外に出ない。AI Ask + Extract Structured でカバー可能。</td>
-          </tr>
-          <tr>
-            <td><strong>UC1: 構造化データ抽出</strong></td>
-            <td><span class="badge box">Box AI</span></td>
-            <td><span class="badge box">Phase 1</span></td>
-            <td>Box AI Extract Structured API で日本語フィールドも正確に抽出。</td>
-          </tr>
-          <tr>
-            <td><strong>UC2: 稟議書の自動分類</strong></td>
-            <td><span class="badge box">Box AI</span></td>
-            <td><span class="badge both">Phase 2</span></td>
-            <td>AI Ask でカテゴリ・金額・添付有無を自動判定。Metadata に書戻し。</td>
-          </tr>
-          <tr>
-            <td><strong>UC2: 承認ワークフロー</strong></td>
-            <td><span class="badge both">Box AI + Relay</span></td>
-            <td><span class="badge both">Phase 2</span></td>
-            <td>ノーコードで承認フロー構築。AI分類結果に基づきルート自動分岐。</td>
-          </tr>
-          <tr>
-            <td><strong>UC3: 社内問い合わせBot</strong></td>
-            <td><span class="badge ext">外部LLM + Box API</span></td>
-            <td><span class="badge phase">Phase 3</span></td>
-            <td>対話型UIには外部LLMが必要。MCP経由でBoxコンテンツを参照し回答生成。</td>
-          </tr>
-          <tr>
-            <td><strong>UC3: 全社ナレッジ検索</strong></td>
-            <td><span class="badge ext">外部RAG</span></td>
-            <td><span class="badge phase">Phase 3</span></td>
-            <td>部門横断の意味検索・対話にはRAG基盤が必要。Box APIでコンテンツを安全に取得。</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="card highlight" style="margin-top:20px; padding:16px 20px;">
-        <p style="font-size:14px;">
-          <strong>設計方針：</strong>
-          Phase 1・2 は<strong>Box単体で完結</strong>（外部AI不要）。機密性の高い文書処理はBox AI内で完結させ、
-          Phase 3 で対話・推論など高度なAI機能が必要な場面でのみ外部LLMを補完的に活用します。
+  <!-- Slide 5: Section - Solution Concept -->
+  <div class="slide slide-section" id="slide-5">
+    <div class="section-num">02</div>
+    <h2>解決コンセプト</h2>
+    <p>全社AI基盤を作り、ユースケースを順に乗せる</p>
+    <div class="slide-footer">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 6: Concept Overview -->
+  <div class="slide slide-content" id="slide-6">
+    <h2>コンセプト：全社AI基盤</h2>
+    <div class="slide-subtitle">個別ツールではなく「コンテンツ基盤(Box) に AI を重ねる」アプローチ</div>
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:20px;">
+      <div class="grid-3" style="flex:0;">
+        <div class="card highlight">
+          <div class="card-icon">&#128230;</div>
+          <h3>Step 1: まず器を整える</h3>
+          <p>Boxにデータを集約（段階的移行）。オンプレ・メール・PCに散在するファイルを一元化。</p>
+        </div>
+        <div class="card highlight" style="border-width:2px;">
+          <div class="card-icon">&#127919;</div>
+          <h3>Step 2: 契約業務で最初の成功を作る</h3>
+          <p>今日見せるデモ。契約書レビュー＋稟議チェックで効果を実証する。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128640;</div>
+          <h3>Step 3: 同じ基盤で横展開</h3>
+          <p>問い合わせBot、ナレッジ検索、etc. 同じ基盤の上に新しいユースケースを乗せる。</p>
+        </div>
+      </div>
+      <div class="card" style="text-align:center; padding:16px 24px;">
+        <p style="font-size:15px; color:var(--gray-700);">
+          <strong>一度に全部作らない。</strong>契約業務から始めて、同じ基盤で広げる。
         </p>
       </div>
     </div>
     <div class="slide-footer dark">Box株式会社 | Confidential</div>
   </div>
 
-  <!-- Slide 14: Gradual Data Migration -->
-  <div class="slide slide-content" id="slide-14">
-    <h2>段階的データ移行</h2>
-    <div class="slide-subtitle">「段階的移行」 ── 最も価値の高いデータから始め、徐々に拡大</div>
-    <div class="timeline">
-      <div class="timeline-card" style="border-color:var(--box-blue);">
-        <div class="phase-badge">Phase 1（1-2ヶ月）</div>
-        <h4>法務部門パイロット</h4>
-        <ul>
-          <li>Box Enterprise 環境構築・SSO連携</li>
-          <li><strong>法務部門の契約書</strong>を先行移行</li>
-          <li>契約書AIレビュー（UC1）のPoC実施</li>
-          <li>メタデータテンプレート定義</li>
-          <li>既存ファイルサーバーと並行運用</li>
-          <li>対象：法務部（約50名）</li>
-        </ul>
+  <!-- Slide 7: 5-Layer Architecture -->
+  <div class="slide slide-content" id="slide-7">
+    <h2>5層アーキテクチャ</h2>
+    <div class="slide-subtitle">セキュリティとスケーラビリティを両立する構造</div>
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:6px;">
+      <div class="layer-row">
+        <div class="layer-label" style="background:#FFCDD2; color:#B71C1C;">&#128737; ガバナンス層</div>
+        <div class="layer-content" style="background:#FFEBEE;">
+          <div class="layer-item">Box Shield</div>
+          <div class="layer-item">権限管理</div>
+          <div class="layer-item">監査ログ</div>
+          <div class="layer-item">リテンション</div>
+          <span style="font-size:11px; color:#B71C1C; margin-left:8px;">（横断）</span>
+        </div>
       </div>
-      <div class="timeline-card" style="border-color:var(--box-blue);">
-        <div class="phase-badge">Phase 2（2-4ヶ月）</div>
-        <h4>拡大 + ワークフロー導入</h4>
-        <ul>
-          <li>経理・総務・事業部門へ拡大</li>
-          <li><strong>稟議書承認フロー（UC2）</strong>の本番導入</li>
-          <li>契約書AIレビューの本番化</li>
-          <li>Box Shuttle による一括移行</li>
-          <li>ユーザートレーニング（e-Learning）</li>
-          <li>対象：500-1,000名規模</li>
-        </ul>
+      <div class="layer-row">
+        <div class="layer-label" style="background:#C8E6C9; color:#1B5E20;">&#128187; ユースケース層</div>
+        <div class="layer-content" style="background:#E8F5E9;">
+          <div class="layer-item">契約書レビュー</div>
+          <div class="layer-item">稟議チェック</div>
+          <div class="layer-item" style="opacity:0.6; border-style:dashed; border:1px dashed #999;">（将来）問い合わせBot</div>
+        </div>
       </div>
-      <div class="timeline-card future">
-        <div class="phase-badge">Phase 3（4-6ヶ月）</div>
-        <h4>全社展開 + AIチャット</h4>
-        <ul>
-          <li>全3,000名への展開完了</li>
-          <li><strong>社内問い合わせBot（UC3）</strong>構築</li>
-          <li>RAGによるナレッジ検索</li>
-          <li>Box Sign 電子署名導入</li>
-          <li>Box Shield 高度なDLP設定</li>
-          <li>ROI報告・次年度計画</li>
-        </ul>
+      <div class="layer-row">
+        <div class="layer-label" style="background:#E1BEE7; color:#4A148C;">&#9881; オーケストレーション層</div>
+        <div class="layer-content" style="background:#F3E5F5;">
+          <div class="layer-item">MCP Server（段取りの制御のみ）</div>
+        </div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-label" style="background:#BBDEFB; color:#0D47A1;">&#129302; AI処理層</div>
+        <div class="layer-content" style="background:#E3F2FD;">
+          <div class="layer-item" style="background:var(--box-light); color:var(--box-blue);">Box AI（機密はBox内完結）</div>
+          <div class="layer-item" style="background:#FFF8E1; color:#F57F17;">外部LLM（非機密の補完のみ）</div>
+        </div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-label" style="background:#B3E5FC; color:#01579B;">&#128451; データ基盤層</div>
+        <div class="layer-content" style="background:#E1F5FE;">
+          <div class="layer-item">Box Content</div>
+          <div class="layer-item">Box Metadata</div>
+          <div class="layer-item">Box Search</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:16px; margin-top:16px;">
+        <div class="card highlight" style="flex:1; padding:14px 18px;">
+          <p style="font-size:13px;"><strong>&#128274; 生命線：</strong>機密文書の本文は外部LLMに出さない。Box AIの枠内で処理 = 規制業種の生命線</p>
+        </div>
+        <div class="card" style="flex:1; padding:14px 18px;">
+          <p style="font-size:13px;"><strong>&#9889; 方針：</strong>標準Box MCPでできることは標準を使い、足りない業務知能だけカスタムで足す</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 8: Data Migration + Governance -->
+  <div class="slide slide-content" id="slide-8">
+    <h2>データ集約とガバナンス</h2>
+    <div class="slide-subtitle">Boxにデータを集める動線と、そのメリット</div>
+    <div class="grid-2" style="align-items:start;">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <h3>&#128229; Boxにデータを集める動線</h3>
+          <ul>
+            <li>メール添付 &#10132; Box自動格納（Outlook連携）</li>
+            <li>オンプレファイルサーバー &#10132; Box Shuttle（段階的移行）</li>
+            <li>各部門PC &#10132; Box Drive（同期）</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card highlight" style="margin-bottom:16px;">
+          <h3>&#127775; Boxに集めるメリット</h3>
+          <ul>
+            <li>AI処理対象が揃う &#10132; 分析精度向上</li>
+            <li>権限と監査ログを一元管理</li>
+            <li>横展開が容易（同じAPIで全文書にアクセス）</li>
+            <li>Box Sign で締結まで完結</li>
+          </ul>
+        </div>
       </div>
     </div>
     <div style="margin-top:16px;">
-      <div class="card" style="padding:14px 20px; text-align:center;">
-        <p style="font-size:14px; color:var(--gray-700);">
-          <strong>段階的移行のメリット：</strong>
-          最初は法務部門のみ（最も価値の高い契約書データ）で効果を実証 &#8594;
-          成功事例をもとに全社展開を推進。リスクを最小化しつつ、早期にROIを確認できます。
-        </p>
+      <div class="card" style="padding:20px 28px;">
+        <h3 style="margin-bottom:12px;">&#128197; 段階的ロードマップ</h3>
+        <div class="flow-steps">
+          <div class="flow-step active-step" style="min-width:200px;">
+            <strong>Phase 1</strong><br>法務部（50名パイロット）
+          </div>
+          <div class="flow-arrow">&#10132;</div>
+          <div class="flow-step" style="min-width:200px;">
+            <strong>Phase 2</strong><br>管理・営業（500名）
+          </div>
+          <div class="flow-arrow">&#10132;</div>
+          <div class="flow-step" style="min-width:200px;">
+            <strong>Phase 3</strong><br>全社（3,000名）
+          </div>
+        </div>
       </div>
     </div>
     <div class="slide-footer dark">Box株式会社 | Confidential</div>
   </div>
 
-  <!-- Slide 15: Expected ROI -->
-  <div class="slide slide-content" id="slide-15">
-    <h2>期待される効果</h2>
-    <div class="slide-subtitle">3つのユースケースによる定量・定性効果の試算</div>
+  <!-- Slide 9: Section - Demo -->
+  <div class="slide slide-section" id="slide-9">
+    <div class="section-num">03</div>
+    <h2>デモ</h2>
+    <p>契約業務を、動くもので体感する</p>
+    <div class="slide-footer">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 10: Demo 1 - Contract Review -->
+  <div class="slide slide-content" id="slide-10">
+    <h2>デモ&#9312; 契約書 AI レビュー</h2>
+    <div class="slide-subtitle">自然言語で依頼し、AIが自律的にレビューを実行</div>
+    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+      <div style="text-align:center;">
+        <div style="font-size:80px; margin-bottom:24px;">&#128421;&#65039;</div>
+        <h3 style="font-size:24px; margin-bottom:16px;">デモアプリに切り替えます</h3>
+        <div style="margin-top:24px;">
+          <div class="flow-steps" style="flex-wrap:wrap;">
+            <div class="flow-step active-step">&#128172; 自然文で依頼</div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step active-step">&#128269; Box検索</div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step active-step">&#129302; AIレビュー自律連鎖</div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step active-step">&#9888; リスク重大度順</div>
+          </div>
+          <div class="flow-steps" style="margin-top:12px;">
+            <div class="flow-step active-step">&#128101; 立場切替</div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step active-step">&#127991; メタデータ記録</div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:28px; padding:14px 24px; display:inline-block;">
+          <p style="font-size:14px;">&#9888; <strong>最終判断は人が行う</strong> &#8212; AIは判断材料を整える</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 11: Demo 2 - Ringi Check -->
+  <div class="slide slide-content" id="slide-11">
+    <h2>デモ&#9313; 稟議チェック（同じ案件の発注稟議）</h2>
+    <div class="slide-subtitle">同じ基盤の上で、別の業務が動く</div>
+    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+      <div style="text-align:center;">
+        <div style="font-size:80px; margin-bottom:24px;">&#128421;&#65039;</div>
+        <h3 style="font-size:24px; margin-bottom:16px;">同じ基盤の上で、別の業務が動く</h3>
+        <div style="margin-top:24px;">
+          <div class="flow-steps" style="flex-wrap:wrap;">
+            <div class="flow-step active-step">&#128196; 稟議書提出</div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step active-step">&#129302; AI自動分類</div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step active-step">&#128256; 承認ルート判定</div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step active-step">&#9888; 添付不備指摘</div>
+            <div class="flow-arrow">&#10132;</div>
+            <div class="flow-step active-step">&#9989; Box Relay承認</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 12: Roles & Boundaries -->
+  <div class="slide slide-content" id="slide-12">
+    <h2>役割分担と進め方</h2>
+    <div class="slide-subtitle">明確な責任分担で、確実に成果を出す</div>
+    <div class="grid-3" style="align-items:start;">
+      <div class="card highlight">
+        <h3>&#128104;&#8205;&#128187; 私（SA）がやること</h3>
+        <ul>
+          <li>要件定義</li>
+          <li>アーキテクチャ設計</li>
+          <li>PoC構築・伴走</li>
+          <li>技術課題の解決</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>&#128101; Boxチームがやること</h3>
+        <ul>
+          <li>環境構築</li>
+          <li>ライセンス</li>
+          <li>SSO/AD連携</li>
+          <li>ユーザートレーニング</li>
+          <li>サポート体制</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:var(--danger); border-width:2px;">
+        <h3 style="color:var(--danger);">&#128683; やらないこと</h3>
+        <ul>
+          <li>一度に全部作らない</li>
+          <li>AIに最終判断を委ねない</li>
+          <li>既存システムを一気に止めない</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 13: Next Steps + Future -->
+  <div class="slide slide-content" id="slide-13">
+    <h2>ネクストステップと将来構想</h2>
+    <div class="slide-subtitle">まず契約業務PoCで効果を実証し、同じ基盤で拡張する</div>
     <div class="grid-2" style="align-items:start;">
       <div>
         <div class="card highlight" style="margin-bottom:16px;">
-          <h3>UC1: 契約書AI条項チェック <span class="badge box" style="margin-left:4px;">Phase 1</span></h3>
-          <div class="grid-2" style="gap:12px; margin-top:12px; flex:0;">
-            <div class="big-stat" style="padding:8px;">
-              <div class="big-num" style="font-size:36px;">70%</div>
-              <div class="big-label" style="font-size:12px;">レビュー時間短縮</div>
-            </div>
-            <div class="big-stat" style="padding:8px;">
-              <div class="big-num" style="font-size:36px;">99.9%</div>
-              <div class="big-label" style="font-size:12px;">条項見落とし防止</div>
-            </div>
-          </div>
-          <p style="font-size:13px; margin-top:8px;">2,000件 x 2h削減 = <strong>年間4,000時間削減</strong></p>
-        </div>
-        <div class="card highlight" style="margin-bottom:16px;">
-          <h3>UC2: 稟議書AI承認フロー <span class="badge both" style="margin-left:4px;">Phase 2</span></h3>
-          <div class="grid-2" style="gap:12px; margin-top:12px; flex:0;">
-            <div class="big-stat" style="padding:8px;">
-              <div class="big-num" style="font-size:36px;">80%</div>
-              <div class="big-label" style="font-size:12px;">承認リードタイム短縮</div>
-            </div>
-            <div class="big-stat" style="padding:8px;">
-              <div class="big-num" style="font-size:36px;">5&#8594;1日</div>
-              <div class="big-label" style="font-size:12px;">意思決定の高速化</div>
-            </div>
-          </div>
-          <p style="font-size:13px; margin-top:8px;">承認プロセスの完全可視化 + 監査証跡自動化</p>
+          <h3>&#128640; ネクストステップ</h3>
+          <ul>
+            <li><strong>契約業務PoCを2-4週間</strong></li>
+            <li>対象：法務部門の実際の契約書5-10件</li>
+            <li>効果測定（時間短縮・リスク検出率）</li>
+            <li>&#10132; 横展開判断</li>
+          </ul>
         </div>
       </div>
       <div>
-        <div class="card" style="margin-bottom:16px; border-style:dashed;">
-          <h3>UC3: 社内問い合わせAI化 <span class="badge phase" style="margin-left:4px;">Phase 3</span></h3>
-          <div class="grid-2" style="gap:12px; margin-top:12px; flex:0;">
-            <div class="big-stat" style="padding:8px;">
-              <div class="big-num" style="font-size:36px;">60%</div>
-              <div class="big-label" style="font-size:12px;">問い合わせ対応削減</div>
-            </div>
-            <div class="big-stat" style="padding:8px;">
-              <div class="big-num" style="font-size:36px;">1,200h</div>
-              <div class="big-label" style="font-size:12px;">年間削減時間</div>
+        <div class="card" style="margin-bottom:16px;">
+          <h3>&#128301; 将来の拡張 <span class="badge phase" style="margin-left:4px;">Phase 3 構想</span></h3>
+          <ul>
+            <li><strong>問い合わせBot</strong>（Slack連携 + Box AI + 外部LLM）</li>
+            <li><strong>ナレッジ検索</strong>（RAG + Box Search）</li>
+          </ul>
+          <div style="margin-top:16px; padding:12px; background:white; border-radius:8px; border:1px solid var(--gray-200);">
+            <p style="font-size:12px; color:var(--gray-600); text-align:center; margin-bottom:8px;">同じ5層アーキテクチャ上に構築</p>
+            <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
+              <span style="background:var(--box-light); color:var(--box-blue); padding:4px 10px; border-radius:4px; font-size:11px; font-weight:600;">データ基盤層</span>
+              <span style="background:#E3F2FD; color:#0D47A1; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:600;">AI処理層</span>
+              <span style="background:#F3E5F5; color:#4A148C; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:600;">オーケストレーション層</span>
+              <span style="background:#E8F5E9; color:#1B5E20; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:600;">ユースケース層</span>
+              <span style="background:#FFEBEE; color:#B71C1C; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:600;">ガバナンス層</span>
             </div>
           </div>
-          <p style="font-size:13px; margin-top:8px;">月200件 x 0.5h削減。ナレッジの属人化を解消</p>
-        </div>
-        <div class="card">
-          <h3>定性効果</h3>
-          <ul>
-            <li>リスク条項の見落とし防止による<strong>法的リスク低減</strong></li>
-            <li>コンプライアンス対応の<strong>監査証跡自動化</strong></li>
-            <li>全社の<strong>AI活用リテラシー向上</strong></li>
-            <li>法務部門が<strong>戦略業務に集中</strong>できる体制構築</li>
-          </ul>
         </div>
       </div>
     </div>
     <div class="slide-footer dark">Box株式会社 | Confidential</div>
   </div>
 
-  <!-- Slide 16: Next Steps -->
-  <div class="slide slide-cover" id="slide-16">
-    <div class="cover-badge">NEXT STEPS</div>
-    <h1>次のステップ</h1>
-    <div class="cover-sub" style="text-align:left; max-width:600px;">
-      <div style="margin-bottom:16px;">1. 本日のフィードバック・追加ご質問の整理</div>
-      <div style="margin-bottom:16px;">2. PoC環境のご提供（2週間の無償トライアル）</div>
-      <div style="margin-bottom:16px;">3. 御社の契約書・稟議書サンプルでの検証</div>
-      <div style="margin-bottom:16px;">4. Phase 1 パイロット計画のご提案（法務部門）</div>
-      <div>5. Phase 2 ワークフロー導入のスコープ策定</div>
-    </div>
-    <div style="margin-top:48px; opacity:0.6; font-size:14px;">
-      ご質問・ご不明点がございましたら、お気軽にお申し付けください。
+  <!-- Slide 14: End -->
+  <div class="slide slide-cover" id="slide-14">
+    <h1>ご質問・ディスカッション</h1>
+    <div class="cover-sub">本日のデモ・ご提案について、ご質問やご意見をお聞かせください</div>
+    <div class="cover-meta" style="margin-top:32px;">
+      Box株式会社 Consulting<br>
+      ソリューションアーキテクト<br><br>
+      ありがとうございます
     </div>
     <div class="slide-footer">Box株式会社 | Confidential</div>
   </div>
@@ -1054,11 +992,11 @@
     <button class="nav-btn" onclick="prevSlide()">&#8592;</button>
     <button class="nav-btn" onclick="nextSlide()">&#8594;</button>
   </div>
-  <div class="slide-counter" id="slide-counter">1 / 16</div>
+  <div class="slide-counter" id="slide-counter">1 / 14</div>
 
   <script>
     let currentSlide = 1;
-    const totalSlides = 16;
+    const totalSlides = 14;
 
     function showSlide(n) {
       document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));

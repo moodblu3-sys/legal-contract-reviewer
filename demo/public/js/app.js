@@ -18,7 +18,7 @@ function showView(viewId) {
   document.querySelectorAll('.header-nav button').forEach(el => el.classList.remove('active'));
   const view = document.getElementById(`view-${viewId}`);
   if (view) view.classList.remove('hidden');
-  const idx = { contracts: 0, ringi: 1, future: 2, architecture: 3 }[viewId];
+  const idx = { contracts: 0, ringi: 1, architecture: 2, future: 3 }[viewId];
   const buttons = document.querySelectorAll('.header-nav button');
   if (buttons[idx]) buttons[idx].classList.add('active');
 }
