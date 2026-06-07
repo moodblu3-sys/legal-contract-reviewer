@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>契約書AIレビューシステム - Box + AI ソリューション</title>
+  <title>Box AI 業務効率化プラットフォーム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
@@ -14,19 +14,22 @@
   <header class="header">
     <div class="header-logo">
       <div class="box-icon">Box</div>
-      <span>契約書AIレビューシステム</span>
+      <span>AI 業務効率化プラットフォーム</span>
     </div>
     <nav class="header-nav">
-      <button class="active" onclick="showView('dashboard')">ダッシュボード</button>
+      <button class="active" onclick="showView('contracts')">契約書レビュー</button>
+      <button onclick="showView('ringi')">稟議承認フロー</button>
+      <button onclick="showView('future')">将来構想</button>
       <button onclick="showView('architecture')">アーキテクチャ</button>
-      <button onclick="showView('ai-chat')">AI問い合わせ</button>
     </nav>
   </header>
 
-  <!-- Dashboard View -->
-  <main class="main" id="view-dashboard">
-    <h1 class="page-title">契約書管理ダッシュボード</h1>
-    <p class="page-subtitle">Box AI による契約書の自動レビュー・条項チェック・ガバナンス管理</p>
+  <!-- ═══════════════════════════════════════ -->
+  <!-- UC1: 契約書の条項チェック自動化          -->
+  <!-- ═══════════════════════════════════════ -->
+  <main class="main" id="view-contracts">
+    <h1 class="page-title">UC1: 契約書 AI 条項チェック</h1>
+    <p class="page-subtitle">Box AI による契約書の自動レビュー・リスク評価・ガバナンス検査</p>
 
     <!-- Stats -->
     <div class="stats-grid">
@@ -46,7 +49,7 @@
         <div class="stat-detail">即時対応推奨</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">今月の処理時間短縮</div>
+        <div class="stat-label">レビュー時間短縮</div>
         <div class="stat-value" style="color: var(--success)">73%</div>
         <div class="stat-detail">従来比（手動レビュー対比）</div>
       </div>
@@ -56,24 +59,25 @@
     <div class="section-card">
       <div class="section-header">
         <div class="section-title">契約書レビュー プロセスフロー</div>
+        <span style="font-size:12px;color:var(--gray-500);">Box AI + Box Metadata + カスタムガバナンスエンジン</span>
       </div>
       <div class="process-flow">
         <div class="process-step active">
           <div class="step-num">1</div>
-          <div class="step-title">契約書アップロード</div>
-          <div class="step-desc">Box にファイル格納</div>
+          <div class="step-title">契約書格納</div>
+          <div class="step-desc">Box にアップロード</div>
         </div>
         <div class="process-arrow">→</div>
         <div class="process-step">
           <div class="step-num">2</div>
-          <div class="step-title">AI 自動分析</div>
-          <div class="step-desc">Box AI で条項チェック</div>
+          <div class="step-title">AI 条項分析</div>
+          <div class="step-desc">Box AI で8観点チェック</div>
         </div>
         <div class="process-arrow">→</div>
         <div class="process-step">
           <div class="step-num">3</div>
-          <div class="step-title">リスク評価</div>
-          <div class="step-desc">重要度別に分類</div>
+          <div class="step-title">リスク判定</div>
+          <div class="step-desc">重要度を自動分類</div>
         </div>
         <div class="process-arrow">→</div>
         <div class="process-step">
@@ -91,7 +95,7 @@
         <div class="process-step">
           <div class="step-num">6</div>
           <div class="step-title">法務確認・承認</div>
-          <div class="step-desc">人間による最終判断</div>
+          <div class="step-desc">人間が最終判断</div>
         </div>
       </div>
     </div>
@@ -99,10 +103,8 @@
     <!-- Contract List -->
     <div class="section-card">
       <div class="section-header">
-        <div class="section-title">最近の契約書</div>
-        <button class="btn btn-primary btn-sm" onclick="alert('デモ環境: Boxからファイルをアップロードする画面が開きます')">
-          + アップロード
-        </button>
+        <div class="section-title">契約書一覧</div>
+        <button class="btn btn-primary btn-sm" onclick="alert('デモ: Boxアップロード画面が開きます')">+ アップロード</button>
       </div>
       <table class="contract-table">
         <thead>
@@ -121,304 +123,147 @@
     </div>
   </main>
 
-  <!-- Architecture View -->
-  <div class="main hidden" id="view-architecture">
-    <h1 class="page-title">ソリューション アーキテクチャ</h1>
-    <p class="page-subtitle">Box を中核としたAI契約書レビューシステムの全体設計</p>
+  <!-- ═══════════════════════════════════════ -->
+  <!-- UC2: 稟議書の承認フロー自動化            -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="main hidden" id="view-ringi">
+    <h1 class="page-title">UC2: 稟議書 AI 承認フロー</h1>
+    <p class="page-subtitle">Box AI による自動分類 + Box Relay による承認ワークフロー自動化</p>
 
-    <div class="arch-diagram">
-      <div class="arch-layers">
-        <!-- User Layer -->
-        <div class="arch-layer">
-          <div class="arch-layer-label">ユーザー層</div>
-          <div class="arch-nodes">
-            <div class="arch-node">
-              <div class="node-icon">👤</div>
-              <div class="node-name">法務担当者</div>
-              <div class="node-desc">契約書レビュー依頼</div>
-            </div>
-            <div class="arch-node">
-              <div class="node-icon">👥</div>
-              <div class="node-name">営業担当者</div>
-              <div class="node-desc">契約書アップロード</div>
-            </div>
-            <div class="arch-node">
-              <div class="node-icon">🏢</div>
-              <div class="node-name">管理部門</div>
-              <div class="node-desc">ガバナンス管理</div>
-            </div>
-          </div>
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card highlight">
+        <div class="stat-label">今月の稟議件数</div>
+        <div class="stat-value">156</div>
+        <div class="stat-detail">前月比 +12%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">平均承認日数</div>
+        <div class="stat-value" style="color: var(--success)">1.2日</div>
+        <div class="stat-detail">従来 5日 → 76%短縮</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">AI自動分類率</div>
+        <div class="stat-value">94%</div>
+        <div class="stat-detail">手動分類不要</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">差戻し率</div>
+        <div class="stat-value" style="color: var(--warning)">8%</div>
+        <div class="stat-detail">添付不足の事前検出で改善</div>
+      </div>
+    </div>
+
+    <!-- Approval Flow -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">AI駆動の承認プロセス</div>
+        <span style="font-size:12px;color:var(--gray-500);">Box AI（自動分類）+ Box Relay（ワークフロー）+ Box Metadata（記録）</span>
+      </div>
+      <div class="process-flow">
+        <div class="process-step active">
+          <div class="step-num">1</div>
+          <div class="step-title">稟議書提出</div>
+          <div class="step-desc">Boxにアップロード</div>
         </div>
-
-        <div class="arch-arrow">▼</div>
-
-        <!-- Application Layer -->
-        <div class="arch-layer app-layer">
-          <div class="arch-layer-label">アプリケーション層</div>
-          <div class="arch-nodes">
-            <div class="arch-node">
-              <div class="node-icon">🌐</div>
-              <div class="node-name">契約書レビューUI</div>
-              <div class="node-desc">Webアプリケーション</div>
-            </div>
-            <div class="arch-node">
-              <div class="node-icon">⚙️</div>
-              <div class="node-name">MCP Server</div>
-              <div class="node-desc">ワークフロー制御</div>
-            </div>
-            <div class="arch-node">
-              <div class="node-icon">🔍</div>
-              <div class="node-name">ガバナンスエンジン</div>
-              <div class="node-desc">PII検出・ポリシー適用</div>
-            </div>
-          </div>
+        <div class="process-arrow">→</div>
+        <div class="process-step">
+          <div class="step-num">2</div>
+          <div class="step-title">AI自動分類</div>
+          <div class="step-desc">カテゴリ・金額・優先度</div>
         </div>
-
-        <div class="arch-arrow">▼</div>
-
-        <!-- Box Platform Layer -->
-        <div class="arch-layer box-layer">
-          <div class="arch-layer-label">Box Platform（中核）</div>
-          <div class="arch-nodes">
-            <div class="arch-node box-product">
-              <div class="node-icon">📁</div>
-              <div class="node-name">Box Content</div>
-              <div class="node-desc">契約書の安全な格納</div>
-            </div>
-            <div class="arch-node box-product">
-              <div class="node-icon">🤖</div>
-              <div class="node-name">Box AI</div>
-              <div class="node-desc">条項分析・質問応答</div>
-            </div>
-            <div class="arch-node box-product">
-              <div class="node-icon">🏷️</div>
-              <div class="node-name">Box Metadata</div>
-              <div class="node-desc">レビュー結果の構造化</div>
-            </div>
-            <div class="arch-node box-product">
-              <div class="node-icon">🔐</div>
-              <div class="node-name">Box Shield</div>
-              <div class="node-desc">情報漏洩防止</div>
-            </div>
-            <div class="arch-node box-product">
-              <div class="node-icon">🔄</div>
-              <div class="node-name">Box Relay</div>
-              <div class="node-desc">承認ワークフロー</div>
-            </div>
-            <div class="arch-node box-product">
-              <div class="node-icon">✍️</div>
-              <div class="node-name">Box Sign</div>
-              <div class="node-desc">電子署名</div>
-            </div>
-          </div>
+        <div class="process-arrow">→</div>
+        <div class="process-step">
+          <div class="step-num">3</div>
+          <div class="step-title">承認ルート決定</div>
+          <div class="step-desc">金額・種別で自動振分</div>
         </div>
-
-        <div class="arch-arrow">▼</div>
-
-        <!-- External AI Layer -->
-        <div class="arch-layer ai-layer">
-          <div class="arch-layer-label">外部AI・連携サービス（補完）</div>
-          <div class="arch-nodes">
-            <div class="arch-node external">
-              <div class="node-icon">🧠</div>
-              <div class="node-name">Claude / GPT</div>
-              <div class="node-desc">高度な法務分析</div>
-            </div>
-            <div class="arch-node external">
-              <div class="node-icon">📊</div>
-              <div class="node-name">RAG Pipeline</div>
-              <div class="node-desc">社内ナレッジ検索</div>
-            </div>
-            <div class="arch-node">
-              <div class="node-icon">📧</div>
-              <div class="node-name">Slack / Teams</div>
-              <div class="node-desc">通知・問い合わせ</div>
-            </div>
-            <div class="arch-node">
-              <div class="node-icon">🗄️</div>
-              <div class="node-name">既存ファイルサーバー</div>
-              <div class="node-desc">移行元データ</div>
-            </div>
-          </div>
+        <div class="process-arrow">→</div>
+        <div class="process-step">
+          <div class="step-num">4</div>
+          <div class="step-title">添付チェック</div>
+          <div class="step-desc">必要書類の過不足確認</div>
+        </div>
+        <div class="process-arrow">→</div>
+        <div class="process-step">
+          <div class="step-num">5</div>
+          <div class="step-title">Box Relay承認</div>
+          <div class="step-desc">順次承認・通知</div>
+        </div>
+        <div class="process-arrow">→</div>
+        <div class="process-step">
+          <div class="step-num">6</div>
+          <div class="step-title">完了・記録</div>
+          <div class="step-desc">Metadataに監査証跡</div>
         </div>
       </div>
     </div>
 
-    <!-- Why Box at the center -->
+    <!-- Ringi List -->
     <div class="section-card">
       <div class="section-header">
-        <div class="section-title">なぜBoxを中核に据えるのか</div>
+        <div class="section-title">稟議書一覧</div>
+        <button class="btn btn-primary btn-sm" onclick="alert('デモ: 新規稟議作成画面が開きます')">+ 新規稟議</button>
       </div>
-      <div style="padding: 20px;">
-        <div class="extracted-fields">
-          <div class="field-item">
-            <div class="field-label">セキュリティ・ガバナンス</div>
-            <div class="field-value">FedRAMP、ISO27001、SOC2認証取得。保険業界の厳格なコンプライアンス要件に対応。7段階のアクセス権限で契約書のアクセスを厳密に管理。</div>
-          </div>
-          <div class="field-item">
-            <div class="field-label">AI機能の内蔵</div>
-            <div class="field-value">Box AIはコンテンツの境界内でAI処理を実行。契約書の内容が外部に漏洩するリスクなし。追加のAIインフラ構築が不要。</div>
-          </div>
-          <div class="field-item">
-            <div class="field-label">メタデータ駆動の管理</div>
-            <div class="field-value">AIレビュー結果をメタデータとして構造化保存。Metadata Query APIで契約書の横断検索・分析が可能。監査証跡を自動生成。</div>
-          </div>
-          <div class="field-item">
-            <div class="field-label">ワークフロー統合</div>
-            <div class="field-value">Box Relay で承認フロー自動化、Box Sign で電子署名、Box Notesで法務コメント共有。契約ライフサイクル全体をBox内で完結。</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Migration Plan -->
-    <div class="section-card">
-      <div class="section-header">
-        <div class="section-title">移行ロードマップ</div>
-      </div>
-      <div style="padding: 20px;">
-        <div class="migration-timeline">
-          <div class="timeline-phase">
-            <div class="phase-label">Phase 1: 基盤構築（1-2ヶ月）</div>
-            <div class="phase-title">Box環境構築 + 契約書移行</div>
-            <ul class="phase-items">
-              <li>Box Enterprise 環境のセットアップ</li>
-              <li>フォルダ構造・権限設計</li>
-              <li>既存ファイルサーバーからの段階的移行</li>
-              <li>メタデータテンプレート定義</li>
-              <li>SSO/AD連携設定</li>
-            </ul>
-          </div>
-          <div class="timeline-phase">
-            <div class="phase-label">Phase 2: AI活用開始（2-3ヶ月）</div>
-            <div class="phase-title">契約書AIレビューの導入</div>
-            <ul class="phase-items">
-              <li>Box AI 有効化・PoC実施</li>
-              <li>契約書レビューアプリ開発</li>
-              <li>ガバナンスルール策定</li>
-              <li>法務部門パイロット運用</li>
-              <li>フィードバック収集・改善</li>
-            </ul>
-          </div>
-          <div class="timeline-phase">
-            <div class="phase-label">Phase 3: 全社展開（3-6ヶ月）</div>
-            <div class="phase-title">スケールアウト + 高度化</div>
-            <ul class="phase-items">
-              <li>全部門への展開</li>
-              <li>承認ワークフロー自動化（Box Relay）</li>
-              <li>外部AI連携（RAG構築）</li>
-              <li>社内問い合わせAIチャットボット</li>
-              <li>効果測定・ROI報告</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Box External AI Rationale -->
-    <div class="section-card">
-      <div class="section-header">
-        <div class="section-title">Box単体 vs Box + 外部AI の使い分け</div>
-      </div>
-      <div style="padding: 20px;">
-        <table class="contract-table">
-          <thead>
-            <tr>
-              <th>機能</th>
-              <th>Box単体で実現</th>
-              <th>外部AI併用</th>
-              <th>判断根拠</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>契約書の条項チェック</strong></td>
-              <td><span class="status-badge reviewed">Box AI</span></td>
-              <td>-</td>
-              <td>Box AI の Extract Structured + AI Ask でカバー可能。データがBox内に留まりセキュア。</td>
-            </tr>
-            <tr>
-              <td><strong>リスク分類・重要度判定</strong></td>
-              <td><span class="status-badge reviewed">Box AI</span></td>
-              <td><span class="status-badge pending">Claude等</span></td>
-              <td>基本はBox AIで対応。複雑な法的判断には外部LLMを補完的に利用。</td>
-            </tr>
-            <tr>
-              <td><strong>ガバナンス（PII検出）</strong></td>
-              <td><span class="status-badge reviewed">Box Shield</span></td>
-              <td>カスタムルール</td>
-              <td>Box Shield で標準的な検出。業界固有のルールはカスタムエンジンで補完。</td>
-            </tr>
-            <tr>
-              <td><strong>承認ワークフロー</strong></td>
-              <td><span class="status-badge reviewed">Box Relay</span></td>
-              <td>-</td>
-              <td>Box Relay で完結。複雑な分岐はBox Platform Webhookで拡張可能。</td>
-            </tr>
-            <tr>
-              <td><strong>社内ナレッジ検索（RAG）</strong></td>
-              <td>Box AI Ask</td>
-              <td><span class="status-badge pending">RAG Pipeline</span></td>
-              <td>Box AI Askで文書内QAは可能。部門横断・全社ナレッジにはRAG基盤が必要。</td>
-            </tr>
-            <tr>
-              <td><strong>社内問い合わせBot</strong></td>
-              <td>-</td>
-              <td><span class="status-badge pending">LLM + Box API</span></td>
-              <td>対話型UIにはBox外のLLMが必要。Box APIでコンテンツを取得しLLMで回答生成。</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <table class="contract-table">
+        <thead>
+          <tr>
+            <th>稟議番号</th>
+            <th>件名</th>
+            <th>申請者</th>
+            <th>部門</th>
+            <th>金額</th>
+            <th>ステータス</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="ringi-list"></tbody>
+      </table>
     </div>
   </div>
 
-  <!-- AI Chat View -->
-  <div class="main hidden" id="view-ai-chat">
-    <h1 class="page-title">AI 社内問い合わせ（デモ）</h1>
-    <p class="page-subtitle">Box に蓄積された契約書・社内文書をもとに、AIが質問に回答します</p>
+  <!-- ═══════════════════════════════════════ -->
+  <!-- UC3: 将来構想（社内問い合わせAI化）       -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="main hidden" id="view-future">
+    <h1 class="page-title">将来構想: 社内問い合わせ対応のAI化</h1>
+    <p class="page-subtitle">Phase 3 で実現を目指す、Box + 外部LLM を組み合わせた社内ナレッジBot</p>
 
-    <div class="section-card ai-chat-section">
+    <!-- Concept overview -->
+    <div class="section-card">
       <div class="section-header">
-        <div class="section-title">Box AI 質問応答</div>
-        <div style="font-size: 12px; color: var(--gray-500);">Box内の文書をソースとして回答を生成</div>
+        <div class="section-title">構想概要</div>
+        <span class="status-badge pending" style="font-size:11px;">Phase 3 計画</span>
       </div>
-      <div class="chat-container">
-        <div class="chat-messages" id="chat-messages">
-          <div class="chat-message">
-            <div class="chat-avatar ai">AI</div>
-            <div class="chat-bubble ai">
-              こんにちは。Box AI 社内問い合わせアシスタントです。
-              契約書や社内文書に関するご質問にお答えします。
-
-              例えば以下のような質問ができます：
-              ・「損害賠償条項のリスクを教えて」
-              ・「解約条件について確認したい」
-              ・「秘密保持契約の期間は？」
-            </div>
+      <div style="padding:24px;">
+        <div class="stats-grid" style="margin-bottom:24px;">
+          <div class="stat-card">
+            <div class="stat-label">想定対象</div>
+            <div class="stat-value" style="font-size:20px;">全社3,000名</div>
+            <div class="stat-detail">管理部門への問い合わせ削減</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">期待効果</div>
+            <div class="stat-value" style="font-size:20px; color:var(--success);">60%削減</div>
+            <div class="stat-detail">繰り返し質問の自動対応</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">技術要素</div>
+            <div class="stat-value" style="font-size:20px;">Box + LLM</div>
+            <div class="stat-detail">外部AI活用が必須な領域</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">導入時期</div>
+            <div class="stat-value" style="font-size:20px;">Phase 3</div>
+            <div class="stat-detail">基盤整備完了後に着手</div>
           </div>
         </div>
-        <div class="chat-input-area">
-          <input type="text" class="chat-input" id="chat-input" placeholder="契約書に関する質問を入力してください..." />
-          <button class="btn btn-primary" onclick="sendChat()">送信</button>
-        </div>
-      </div>
-    </div>
 
-    <div class="section-card" style="margin-top: 24px;">
-      <div class="section-header">
-        <div class="section-title">このユースケースのアーキテクチャ</div>
-      </div>
-      <div style="padding: 20px;">
-        <p style="font-size: 14px; color: var(--gray-700); margin-bottom: 16px;">
-          社内問い合わせのAI化は、Box AI Ask の機能だけでは対話型UIの提供が困難なため、
-          <strong>外部LLM（Claude等）</strong>を組み合わせるアーキテクチャを採用します。
-        </p>
-        <div class="process-flow" style="padding: 12px 0;">
+        <div class="process-flow" style="padding:0 0 24px;">
           <div class="process-step">
             <div class="step-num">1</div>
             <div class="step-title">ユーザー質問</div>
-            <div class="step-desc">Slack / Web UI</div>
+            <div class="step-desc">Slack / Teams</div>
           </div>
           <div class="process-arrow">→</div>
           <div class="process-step active">
@@ -435,7 +280,7 @@
           <div class="process-arrow">→</div>
           <div class="process-step">
             <div class="step-num">4</div>
-            <div class="step-title">LLM 回答生成</div>
+            <div class="step-title">外部LLM</div>
             <div class="step-desc">対話形式に整形</div>
           </div>
           <div class="process-arrow">→</div>
@@ -445,18 +290,283 @@
             <div class="step-desc">引用元を明示</div>
           </div>
         </div>
-        <p style="font-size: 13px; color: var(--gray-600); margin-top: 12px;">
-          <strong>外部AI採用の根拠：</strong>
-          Box AI Ask は単一・複数ファイルに対するQAに優れていますが、対話コンテキストの維持や
-          複雑な推論が必要な問い合わせ対応には、外部LLMとの組み合わせが効果的です。
-          Box API でコンテンツを安全に取得し、LLM にはコンテキストのみを渡すことで、
-          データの安全性を確保しながら高品質な回答を生成します。
-        </p>
+
+        <div class="extracted-fields">
+          <div class="field-item">
+            <div class="field-label">なぜ外部AIが必要か</div>
+            <div class="field-value">Box AI Ask は文書内QAに優れますが、対話コンテキストの維持や複雑な推論には外部LLMの併用が効果的です。Box APIでコンテンツを安全に取得し、LLMにはコンテキストのみを渡す設計でデータの安全性を確保します。</div>
+          </div>
+          <div class="field-item">
+            <div class="field-label">前提条件</div>
+            <div class="field-value">Phase 1-2 で社内文書がBoxに集約され、メタデータによる分類が整備されていることが前提です。コンテンツ基盤が整って初めて、高品質な回答生成が可能になります。</div>
+          </div>
+          <div class="field-item">
+            <div class="field-label">想定ユースケース</div>
+            <div class="field-value">「この契約書の解約条件は？」「出張旅費の精算ルールを教えて」「新商品の引受基準は？」など、社内規程・マニュアル・過去事例を横断した質問に出典付きで回答。</div>
+          </div>
+          <div class="field-item">
+            <div class="field-label">採用技術</div>
+            <div class="field-value">RAG（Retrieval-Augmented Generation）パターン。Box Search + Box AI Ask で関連文書を取得し、Claude 等のLLMで対話形式の回答を生成。MCP（Model Context Protocol）で安全にBox APIを呼び出します。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Simple chat concept -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">イメージ: 社内問い合わせBot</div>
+        <span style="font-size:12px;color:var(--gray-500);">コンセプト画面（Phase 3で実装予定）</span>
+      </div>
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-message">
+            <div class="chat-avatar ai">AI</div>
+            <div class="chat-bubble ai">
+              社内ナレッジBotです。Boxに蓄積された契約書・社内規程・マニュアルをもとに、出典付きで回答します。
+
+              例: 「損害賠償条項のリスクを教えて」
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chat-input" placeholder="質問を入力（デモ: 損害賠償 / 解約 / 秘密保持）" />
+          <button class="btn btn-primary" onclick="sendChat()">送信</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Review Panel (Modal) -->
+  <!-- ═══════════════════════════════════════ -->
+  <!-- アーキテクチャビュー                     -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="main hidden" id="view-architecture">
+    <h1 class="page-title">ソリューション アーキテクチャ</h1>
+    <p class="page-subtitle">Box を中核としたAI業務効率化プラットフォームの全体設計</p>
+
+    <div class="arch-diagram">
+      <div class="arch-layers">
+        <div class="arch-layer">
+          <div class="arch-layer-label">ユーザー層</div>
+          <div class="arch-nodes">
+            <div class="arch-node">
+              <div class="node-icon">👤</div>
+              <div class="node-name">法務担当者</div>
+              <div class="node-desc">契約書レビュー</div>
+            </div>
+            <div class="arch-node">
+              <div class="node-icon">📋</div>
+              <div class="node-name">各部門申請者</div>
+              <div class="node-desc">稟議書提出</div>
+            </div>
+            <div class="arch-node">
+              <div class="node-icon">✅</div>
+              <div class="node-name">承認者</div>
+              <div class="node-desc">稟議承認・差戻し</div>
+            </div>
+            <div class="arch-node">
+              <div class="node-icon">🏢</div>
+              <div class="node-name">管理部門</div>
+              <div class="node-desc">ガバナンス管理</div>
+            </div>
+          </div>
+        </div>
+        <div class="arch-arrow">▼</div>
+        <div class="arch-layer app-layer">
+          <div class="arch-layer-label">アプリケーション層</div>
+          <div class="arch-nodes">
+            <div class="arch-node">
+              <div class="node-icon">📄</div>
+              <div class="node-name">契約書レビューUI</div>
+              <div class="node-desc">UC1: 条項チェック</div>
+            </div>
+            <div class="arch-node">
+              <div class="node-icon">📋</div>
+              <div class="node-name">稟議承認UI</div>
+              <div class="node-desc">UC2: 承認フロー</div>
+            </div>
+            <div class="arch-node">
+              <div class="node-icon">⚙️</div>
+              <div class="node-name">MCP Server</div>
+              <div class="node-desc">ワークフロー制御</div>
+            </div>
+            <div class="arch-node">
+              <div class="node-icon">🔍</div>
+              <div class="node-name">ガバナンスエンジン</div>
+              <div class="node-desc">PII検出・ポリシー</div>
+            </div>
+          </div>
+        </div>
+        <div class="arch-arrow">▼</div>
+        <div class="arch-layer box-layer">
+          <div class="arch-layer-label">Box Platform（中核）</div>
+          <div class="arch-nodes">
+            <div class="arch-node box-product">
+              <div class="node-icon">📁</div>
+              <div class="node-name">Box Content</div>
+              <div class="node-desc">契約書・稟議書の安全な格納</div>
+            </div>
+            <div class="arch-node box-product">
+              <div class="node-icon">🤖</div>
+              <div class="node-name">Box AI</div>
+              <div class="node-desc">条項分析・自動分類・QA</div>
+            </div>
+            <div class="arch-node box-product">
+              <div class="node-icon">🏷️</div>
+              <div class="node-name">Box Metadata</div>
+              <div class="node-desc">構造化データ・監査証跡</div>
+            </div>
+            <div class="arch-node box-product">
+              <div class="node-icon">🔄</div>
+              <div class="node-name">Box Relay</div>
+              <div class="node-desc">稟議承認ワークフロー</div>
+            </div>
+            <div class="arch-node box-product">
+              <div class="node-icon">🔐</div>
+              <div class="node-name">Box Shield</div>
+              <div class="node-desc">DLP・異常検知</div>
+            </div>
+            <div class="arch-node box-product">
+              <div class="node-icon">✍️</div>
+              <div class="node-name">Box Sign</div>
+              <div class="node-desc">電子署名</div>
+            </div>
+          </div>
+        </div>
+        <div class="arch-arrow">▼</div>
+        <div class="arch-layer ai-layer">
+          <div class="arch-layer-label">外部AI・連携（Phase 3で拡張）</div>
+          <div class="arch-nodes">
+            <div class="arch-node external">
+              <div class="node-icon">🧠</div>
+              <div class="node-name">外部LLM</div>
+              <div class="node-desc">社内問い合わせBot</div>
+            </div>
+            <div class="arch-node external">
+              <div class="node-icon">📊</div>
+              <div class="node-name">RAG Pipeline</div>
+              <div class="node-desc">全社ナレッジ検索</div>
+            </div>
+            <div class="arch-node">
+              <div class="node-icon">📧</div>
+              <div class="node-name">Slack / Teams</div>
+              <div class="node-desc">通知・Bot連携</div>
+            </div>
+            <div class="arch-node">
+              <div class="node-icon">🗄️</div>
+              <div class="node-name">オンプレファイルサーバー</div>
+              <div class="node-desc">段階的移行元</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Migration -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">段階的データ移行ロードマップ</div>
+      </div>
+      <div style="padding: 20px;">
+        <div class="migration-timeline">
+          <div class="timeline-phase">
+            <div class="phase-label">Phase 1（1-2ヶ月）</div>
+            <div class="phase-title">基盤構築 + 法務部門パイロット</div>
+            <ul class="phase-items">
+              <li>Box Enterprise 環境セットアップ</li>
+              <li>SSO / AD連携設定</li>
+              <li>法務部門の契約書を先行移行</li>
+              <li>メタデータテンプレート定義</li>
+              <li>契約書AIレビュー PoC実施</li>
+            </ul>
+          </div>
+          <div class="timeline-phase">
+            <div class="phase-label">Phase 2（2-4ヶ月）</div>
+            <div class="phase-title">AI活用本番化 + 全社段階移行</div>
+            <ul class="phase-items">
+              <li>契約書AIレビューの本番導入</li>
+              <li>稟議承認フロー自動化（Box Relay）</li>
+              <li>管理部門・営業部門のデータ移行</li>
+              <li>ユーザートレーニング実施</li>
+              <li>効果測定・KPI設定</li>
+            </ul>
+          </div>
+          <div class="timeline-phase">
+            <div class="phase-label">Phase 3（4-6ヶ月）</div>
+            <div class="phase-title">全社展開 + 問い合わせAI化</div>
+            <ul class="phase-items">
+              <li>残部門のデータ完全移行</li>
+              <li>社内問い合わせBot構築</li>
+              <li>RAGナレッジ基盤構築</li>
+              <li>Box Sign 電子署名導入</li>
+              <li>ROI報告・次年度計画</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Box vs External -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">Box単体 vs Box + 外部AI の使い分け</div>
+      </div>
+      <div style="padding: 20px;">
+        <table class="contract-table">
+          <thead>
+            <tr>
+              <th>ユースケース</th>
+              <th>実現方式</th>
+              <th>Phase</th>
+              <th>判断根拠</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>契約書 条項チェック</strong></td>
+              <td><span class="status-badge reviewed">Box AI</span></td>
+              <td>1-2</td>
+              <td>Box AI の Extract Structured + AI Ask で完結。データがBox内に留まりセキュア。</td>
+            </tr>
+            <tr>
+              <td><strong>稟議書 自動分類</strong></td>
+              <td><span class="status-badge reviewed">Box AI</span></td>
+              <td>2</td>
+              <td>Box AI でカテゴリ・金額・優先度を抽出。Box Metadata に書き戻して承認ルート判定。</td>
+            </tr>
+            <tr>
+              <td><strong>稟議 承認ワークフロー</strong></td>
+              <td><span class="status-badge reviewed">Box Relay</span></td>
+              <td>2</td>
+              <td>Box Relay のノーコード機能で構築。Metadata条件で承認ルートを動的に決定。</td>
+            </tr>
+            <tr>
+              <td><strong>ガバナンス検査</strong></td>
+              <td><span class="status-badge reviewed">Box Shield + カスタム</span></td>
+              <td>1-2</td>
+              <td>標準PIIはBox Shield、保険業界固有ルールはカスタムエンジンで補完。</td>
+            </tr>
+            <tr>
+              <td><strong>社内問い合わせBot</strong></td>
+              <td><span class="status-badge pending">外部LLM + Box API</span></td>
+              <td>3</td>
+              <td>対話UIには外部LLMが必須。Box APIでコンテンツを安全に取得し回答生成。</td>
+            </tr>
+            <tr>
+              <td><strong>全社ナレッジ検索</strong></td>
+              <td><span class="status-badge pending">RAG + Box API</span></td>
+              <td>3</td>
+              <td>部門横断の意味検索にはRAG基盤が必要。Phase 1-2でのBox集約が前提。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 契約書レビューモーダル                    -->
+  <!-- ═══════════════════════════════════════ -->
   <div class="review-panel" id="review-panel">
     <div class="review-overlay" onclick="closeReview()"></div>
     <div class="review-content">
@@ -470,22 +580,14 @@
             <option value="受託者">受託者（ベンダー）の立場</option>
             <option value="委託者">委託者（発注者）の立場</option>
           </select>
-          <button class="btn btn-primary" id="start-review-btn" onclick="startReview()">
-            AI レビュー開始
-          </button>
-          <button class="btn btn-secondary hidden" id="writeback-btn" onclick="writebackMetadata()">
-            Box メタデータに書戻し
-          </button>
+          <button class="btn btn-primary" id="start-review-btn" onclick="startReview()">AI レビュー開始</button>
+          <button class="btn btn-secondary hidden" id="writeback-btn" onclick="writebackMetadata()">Box メタデータに書戻し</button>
         </div>
-
-        <!-- Loading -->
         <div class="review-loading hidden" id="review-loading">
           <div class="spinner"></div>
           <div style="color: var(--gray-600);">Box AI が契約書を分析中...</div>
           <div style="font-size: 12px; color: var(--gray-400); margin-top: 8px;">条項チェック → リスク評価 → ガバナンス検査</div>
         </div>
-
-        <!-- Results -->
         <div class="review-results" id="review-results">
           <div class="tab-bar">
             <button class="tab-btn active" onclick="switchTab('tab-overview')">リスク概要</button>
@@ -493,15 +595,52 @@
             <button class="tab-btn" onclick="switchTab('tab-extracted')">抽出情報</button>
             <button class="tab-btn" onclick="switchTab('tab-governance')">ガバナンス</button>
           </div>
-
           <div class="tab-content active" id="tab-overview"></div>
           <div class="tab-content" id="tab-concerns"></div>
           <div class="tab-content" id="tab-extracted"></div>
           <div class="tab-content" id="tab-governance"></div>
         </div>
-
         <div class="writeback-success" id="writeback-success">
           ✓ レビュー結果をBox Metadataに書き戻しました。監査証跡として記録されます。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 稟議書分類モーダル                        -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="review-panel" id="ringi-panel">
+    <div class="review-overlay" onclick="closeRingi()"></div>
+    <div class="review-content">
+      <div class="review-header">
+        <h2 id="ringi-title">稟議書 AI分類</h2>
+        <button class="review-close" onclick="closeRingi()">×</button>
+      </div>
+      <div class="review-body">
+        <div class="review-actions">
+          <button class="btn btn-primary" id="start-classify-btn" onclick="startClassify()">AI 自動分類を実行</button>
+          <button class="btn btn-secondary hidden" id="start-workflow-btn" onclick="startWorkflow()">Box Relay 承認フロー開始</button>
+        </div>
+        <div class="review-loading hidden" id="ringi-loading">
+          <div class="spinner"></div>
+          <div style="color: var(--gray-600);">Box AI が稟議書を分析中...</div>
+          <div style="font-size: 12px; color: var(--gray-400); margin-top: 8px;">カテゴリ分類 → 金額抽出 → 承認ルート判定 → 添付チェック</div>
+        </div>
+        <div class="review-results" id="ringi-results">
+          <div class="tab-bar" id="ringi-tab-bar">
+            <button class="tab-btn active" onclick="switchRingiTab('rtab-route')">承認ルート</button>
+            <button class="tab-btn" onclick="switchRingiTab('rtab-flags')">リスク・注意事項</button>
+            <button class="tab-btn" onclick="switchRingiTab('rtab-attachments')">添付チェック</button>
+            <button class="tab-btn" onclick="switchRingiTab('rtab-extracted')">抽出情報</button>
+          </div>
+          <div class="tab-content active" id="rtab-route"></div>
+          <div class="tab-content" id="rtab-flags"></div>
+          <div class="tab-content" id="rtab-attachments"></div>
+          <div class="tab-content" id="rtab-extracted"></div>
+        </div>
+        <div class="writeback-success" id="workflow-success">
+          ✓ Box Relay で承認ワークフローを開始しました。次の承認者に通知が送信されました。
         </div>
       </div>
     </div>

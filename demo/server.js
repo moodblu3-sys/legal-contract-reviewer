@@ -1,6 +1,7 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { createServer } from 'http';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -11,6 +12,8 @@ app.use(express.json());
 const projectRoot = join(__dirname, '..');
 app.use('/presentation', express.static(join(projectRoot, 'presentation')));
 app.use(express.static(join(__dirname, 'public')));
+
+// ── 契約書データ ──
 
 const SAMPLE_CONTRACTS = [
   {
@@ -159,6 +162,103 @@ const REVIEW_RESULTS = {
   }
 };
 
+// ── 稟議書データ ──
+
+const SAMPLE_RINGI = [
+  {
+    id: 'RNG-2025-042',
+    title: 'クラウドセキュリティ監視ツール導入',
+    applicant: '山田 太郎',
+    department: 'IT推進部',
+    amount: 4800000,
+    category: 'IT投資',
+    priority: '通常',
+    submittedAt: '2025-06-02T09:30:00',
+    status: 'pending_classification',
+    attachments: ['見積書_CloudMonitor.pdf', '製品比較表.xlsx'],
+    boxFileId: '2000000001'
+  },
+  {
+    id: 'RNG-2025-043',
+    title: '代理店向け研修プログラム外部委託',
+    applicant: '佐藤 花子',
+    department: '営業企画部',
+    amount: 12500000,
+    category: '外部委託',
+    priority: '通常',
+    submittedAt: '2025-06-03T14:15:00',
+    status: 'pending_classification',
+    attachments: ['研修企画書.pdf', '委託先選定理由書.pdf', '見積書3社.pdf'],
+    boxFileId: '2000000002'
+  },
+  {
+    id: 'RNG-2025-041',
+    title: 'オフィス複合機リース契約更新',
+    applicant: '鈴木 一郎',
+    department: '総務部',
+    amount: 960000,
+    category: '経費',
+    priority: '低',
+    submittedAt: '2025-06-01T11:00:00',
+    status: 'approved',
+    attachments: ['リース契約書.pdf'],
+    boxFileId: '2000000003'
+  },
+  {
+    id: 'RNG-2025-040',
+    title: '海外再保険ブローカー契約締結',
+    applicant: '田中 洋平',
+    department: '再保険部',
+    amount: 85000000,
+    category: '契約締結',
+    priority: '高',
+    submittedAt: '2025-05-30T16:45:00',
+    status: 'in_review',
+    attachments: ['ブローカー契約書.pdf', 'デューデリジェンス報告書.pdf', '取締役会付議資料.pdf'],
+    boxFileId: '2000000004'
+  }
+];
+
+const CLASSIFICATION_RESULTS = {
+  'RNG-2025-042': {
+    aiCategory: 'IT投資（ソフトウェア）',
+    aiPriority: '通常',
+    estimatedApprovalRoute: '部長 → IT統括部長 → 管理本部長',
+    reason: '金額480万円はIT投資の部長決裁上限（500万円）以内ですが、全社セキュリティに関わるため IT統括部長の承認を推奨します。',
+    riskFlags: [],
+    requiredAttachments: ['見積書', '製品比較表', 'セキュリティ要件チェックシート'],
+    missingAttachments: ['セキュリティ要件チェックシート'],
+    relatedPolicies: ['IT投資管理規程 第5条', '情報セキュリティポリシー 第12条'],
+    extractedFields: {
+      vendor: 'CloudMonitor株式会社',
+      contractPeriod: '2025年7月〜2026年6月（1年間）',
+      paymentTerms: '年額一括払い',
+      budgetCode: 'IT-2025-SEC-003'
+    }
+  },
+  'RNG-2025-043': {
+    aiCategory: '外部委託（教育研修）',
+    aiPriority: '高',
+    estimatedApprovalRoute: '部長 → 営業統括本部長 → 管理本部長 → 経営会議',
+    reason: '金額1,250万円は部長決裁上限（1,000万円）を超過。経営会議付議が必要です。また、外部委託先の選定理由について、3社比較の妥当性確認を推奨します。',
+    riskFlags: [
+      { level: '注意', message: '金額が部長決裁上限を超過 → 経営会議付議が必要' },
+      { level: '確認', message: '委託先との既存取引実績なし → 与信審査を推奨' }
+    ],
+    requiredAttachments: ['研修企画書', '委託先選定理由書', '見積書（3社以上）', '与信調査結果'],
+    missingAttachments: ['与信調査結果'],
+    relatedPolicies: ['外部委託管理規程 第8条', '購買管理規程 第3条（競争見積）'],
+    extractedFields: {
+      vendor: 'グローバルHRソリューションズ株式会社',
+      contractPeriod: '2025年8月〜2026年3月（8ヶ月間）',
+      paymentTerms: '月額払い（初回のみ着手金20%）',
+      budgetCode: 'SALES-2025-EDU-001'
+    }
+  }
+};
+
+// ── 契約書 API ──
+
 app.get('/api/contracts', (req, res) => {
   res.json(SAMPLE_CONTRACTS);
 });
@@ -172,15 +272,12 @@ app.get('/api/contracts/:id', (req, res) => {
 app.post('/api/contracts/:id/review', (req, res) => {
   const { id } = req.params;
   const { standpoint } = req.body;
-
   const result = REVIEW_RESULTS[id];
   if (!result) {
     return res.status(404).json({ error: 'Review not available for this contract' });
   }
-
   const contract = SAMPLE_CONTRACTS.find(c => c.id === id);
   if (contract) contract.status = 'reviewed';
-
   res.json({
     contractId: id,
     standpoint: standpoint || '受託者',
@@ -189,33 +286,54 @@ app.post('/api/contracts/:id/review', (req, res) => {
   });
 });
 
-app.post('/api/contracts/:id/governance', (req, res) => {
-  const { id } = req.params;
-  const result = REVIEW_RESULTS[id];
-  if (!result) {
-    return res.status(404).json({ error: 'Not available' });
-  }
-  res.json(result.governanceScan);
+app.post('/api/contracts/:id/writeback', (req, res) => {
+  res.json({
+    success: true,
+    message: 'メタデータをBoxに書き戻しました',
+    metadata: {
+      reviewStatus: 'reviewed',
+      riskLevel: 'high',
+      reviewDate: new Date().toISOString(),
+      reviewer: 'AI Contract Reviewer'
+    }
+  });
 });
 
-app.post('/api/contracts/:id/extract', (req, res) => {
-  const { id } = req.params;
-  const result = REVIEW_RESULTS[id];
-  if (!result) {
-    return res.status(404).json({ error: 'Not available' });
-  }
-  res.json(result.extractedFields);
+// ── 稟議書 API ──
+
+app.get('/api/ringi', (req, res) => {
+  res.json(SAMPLE_RINGI);
 });
+
+app.post('/api/ringi/:id/classify', (req, res) => {
+  const { id } = req.params;
+  const result = CLASSIFICATION_RESULTS[id];
+  if (!result) {
+    return res.status(404).json({ error: 'Classification not available' });
+  }
+  const ringi = SAMPLE_RINGI.find(r => r.id === id);
+  if (ringi) ringi.status = 'classified';
+  res.json({
+    ringiId: id,
+    classifiedAt: new Date().toISOString(),
+    ...result
+  });
+});
+
+app.post('/api/ringi/:id/submit', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Box Relay による承認ワークフローを開始しました',
+    workflowId: 'WF-' + Date.now(),
+    nextApprover: '部長',
+    estimatedCompletion: '2〜3営業日'
+  });
+});
+
+// ── AI Ask API ──
 
 app.post('/api/ai-ask', (req, res) => {
   const { question } = req.body;
-  const answers = {
-    default: {
-      answer: 'Box AI が社内ドキュメントを分析した結果をお伝えします。ご質問の内容に関連する契約書・社内規程を参照し、以下の回答を生成しました。',
-      citations: ['業務委託基本契約書 第15条', '社内規程集 第3章']
-    }
-  };
-
   const knowledgeBase = [
     {
       keywords: ['損害賠償', '賠償', '責任'],
@@ -243,23 +361,11 @@ app.post('/api/ai-ask', (req, res) => {
     }
   }
 
-  res.json(answers.default);
-});
-
-app.post('/api/contracts/:id/writeback', (req, res) => {
   res.json({
-    success: true,
-    message: 'メタデータをBoxに書き戻しました',
-    metadata: {
-      reviewStatus: 'reviewed',
-      riskLevel: 'high',
-      reviewDate: new Date().toISOString(),
-      reviewer: 'AI Contract Reviewer'
-    }
+    answer: 'Box AI が社内ドキュメントを分析した結果をお伝えします。ご質問の内容に関連する契約書・社内規程を参照し、以下の回答を生成しました。',
+    citations: ['業務委託基本契約書 第15条', '社内規程集 第3章']
   });
 });
-
-import { createServer } from 'http';
 
 const server = createServer(app);
 server.listen(PORT, '0.0.0.0', () => {
