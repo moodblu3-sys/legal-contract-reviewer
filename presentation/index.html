@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ご提案書 - AI業務効率化ソリューション | Box</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --box-blue: #0061D5;
+      --box-navy: #003C8F;
+      --box-light: #E8F1FC;
+      --white: #FFFFFF;
+      --gray-100: #F5F5F5;
+      --gray-200: #EEEEEE;
+      --gray-600: #757575;
+      --gray-700: #616161;
+      --gray-900: #212121;
+      --danger: #C62828;
+      --warning: #B35C00;
+      --success: #0A7B3E;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      display: none;
+      padding: 60px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide.active { display: flex; flex-direction: column; }
+
+    .slide-footer {
+      position: absolute;
+      bottom: 20px;
+      left: 80px;
+      right: 80px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .slide-footer.dark { color: var(--gray-600); }
+
+    /* Slide types */
+    .slide-cover {
+      background: linear-gradient(135deg, var(--box-blue) 0%, var(--box-navy) 100%);
+      color: white;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .slide-cover .cover-badge {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 24px;
+      border-radius: 24px;
+      font-size: 14px;
+      margin-bottom: 32px;
+      letter-spacing: 2px;
+    }
+
+    .slide-cover h1 {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+
+    .slide-cover .cover-sub {
+      font-size: 20px;
+      opacity: 0.85;
+      margin-bottom: 48px;
+      font-weight: 400;
+    }
+
+    .slide-cover .cover-meta {
+      font-size: 14px;
+      opacity: 0.6;
+    }
+
+    .slide-content {
+      background: white;
+      color: var(--gray-900);
+    }
+
+    .slide-content h2 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--box-blue);
+      margin-bottom: 8px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--box-blue);
+      display: inline-block;
+    }
+
+    .slide-content .slide-subtitle {
+      font-size: 15px;
+      color: var(--gray-600);
+      margin-bottom: 32px;
+    }
+
+    .slide-section {
+      background: linear-gradient(135deg, var(--box-navy) 0%, #001F4D 100%);
+      color: white;
+      justify-content: center;
+    }
+
+    .slide-section h2 {
+      font-size: 48px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .slide-section .section-num {
+      font-size: 72px;
+      font-weight: 900;
+      opacity: 0.15;
+      position: absolute;
+      right: 80px;
+      top: 40px;
+    }
+
+    .slide-section p {
+      font-size: 18px;
+      opacity: 0.7;
+    }
+
+    /* Grid layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      flex: 1;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      flex: 1;
+    }
+
+    .card {
+      background: var(--gray-100);
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid var(--gray-200);
+    }
+
+    .card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--gray-900);
+    }
+
+    .card p, .card li {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--gray-700);
+    }
+
+    .card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .card ul li {
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .card ul li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--box-blue);
+      font-weight: bold;
+    }
+
+    .card.highlight {
+      background: var(--box-light);
+      border-color: var(--box-blue);
+    }
+
+    .card .card-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .card .card-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    .card .card-tag.box { background: var(--box-light); color: var(--box-blue); }
+    .card .card-tag.external { background: #FFF3E0; color: var(--warning); }
+    .card .card-tag.combined { background: #E8F5E9; color: var(--success); }
+
+    /* Problem statement */
+    .problem-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .problem-item:last-child { border-bottom: none; }
+
+    .problem-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .problem-icon.red { background: #FEECEC; }
+    .problem-icon.orange { background: #FFF3E0; }
+    .problem-icon.blue { background: var(--box-light); }
+
+    .problem-text h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .problem-text p {
+      font-size: 13px;
+      color: var(--gray-600);
+      line-height: 1.6;
+    }
+
+    /* Architecture */
+    .arch-box {
+      border: 2px solid;
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .arch-box .arch-label {
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      background: white;
+      padding: 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .arch-box.box-platform { border-color: var(--box-blue); }
+    .arch-box.box-platform .arch-label { color: var(--box-blue); }
+
+    .arch-box.external-ai { border-color: #F9A825; }
+    .arch-box.external-ai .arch-label { color: #F9A825; }
+
+    .arch-items {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .arch-item {
+      background: var(--gray-100);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .arch-item.blue { background: var(--box-light); color: var(--box-blue); }
+    .arch-item.yellow { background: #FFF8E1; color: #F57F17; }
+
+    .arch-flow-arrow {
+      text-align: center;
+      font-size: 24px;
+      color: var(--gray-600);
+      padding: 8px 0;
+    }
+
+    /* Table */
+    .slide-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .slide-table th {
+      background: var(--box-blue);
+      color: white;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .slide-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .slide-table tr:nth-child(even) { background: var(--gray-100); }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge.box { background: var(--box-light); color: var(--box-blue); }
+    .badge.ext { background: #FFF3E0; color: var(--warning); }
+    .badge.both { background: #E8F5E9; color: var(--success); }
+
+    /* Timeline */
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      flex: 1;
+      align-items: start;
+    }
+
+    .timeline-card {
+      background: white;
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 24px;
+      position: relative;
+    }
+
+    .timeline-card .phase-badge {
+      background: var(--box-blue);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    .timeline-card h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .timeline-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .timeline-card ul li {
+      font-size: 13px;
+      color: var(--gray-700);
+      padding: 4px 0 4px 18px;
+      position: relative;
+      line-height: 1.6;
+    }
+
+    .timeline-card ul li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    /* Navigation */
+    .nav-controls {
+      position: fixed;
+      bottom: 20px;
+      right: 30px;
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn:hover { background: rgba(0,0,0,0.8); }
+
+    .slide-counter {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      z-index: 100;
+    }
+
+    .slide-content .slide-counter,
+    .slide-content .nav-btn { color: var(--gray-600); }
+
+    /* Key points */
+    .key-point {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .key-point .kp-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--box-blue);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .key-point h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .key-point p { font-size: 13px; color: var(--gray-600); line-height: 1.6; }
+
+    /* Big number */
+    .big-stat {
+      text-align: center;
+      padding: 16px;
+    }
+
+    .big-stat .big-num {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--box-blue);
+    }
+
+    .big-stat .big-label {
+      font-size: 14px;
+      color: var(--gray-600);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Slide 1: Cover -->
+  <div class="slide slide-cover active" id="slide-1">
+    <div class="cover-badge">CONFIDENTIAL</div>
+    <h1>AI を活用した<br>業務効率化基盤のご提案</h1>
+    <div class="cover-sub">Box + AI で実現する契約書管理の変革</div>
+    <div class="cover-meta">
+      御社名 様<br>
+      Box株式会社 Consulting<br>
+      2026年6月
+    </div>
+    <div class="slide-footer">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 2: Agenda -->
+  <div class="slide slide-content" id="slide-2">
+    <h2>本日のアジェンダ</h2>
+    <div class="slide-subtitle">30分間で以下の内容をお話しさせていただきます</div>
+    <div style="flex:1; display:flex; align-items:center;">
+      <div style="width:100%;">
+        <div class="key-point">
+          <div class="kp-num">1</div>
+          <div>
+            <h4>御社の課題の確認（5分）</h4>
+            <p>現状の業務課題とAI活用に向けたご要望の整理</p>
+          </div>
+        </div>
+        <div class="key-point">
+          <div class="kp-num">2</div>
+          <div>
+            <h4>デモ：契約書AI条項チェックシステム（12分）</h4>
+            <p>動くプロトタイプを用いて、Box + AI による契約書レビューの自動化をご体験いただきます</p>
+          </div>
+        </div>
+        <div class="key-point">
+          <div class="kp-num">3</div>
+          <div>
+            <h4>ソリューション アーキテクチャ（8分）</h4>
+            <p>Box を中核とし、Box外AIを効果的に組み合わせた全体設計のご説明</p>
+          </div>
+        </div>
+        <div class="key-point">
+          <div class="kp-num">4</div>
+          <div>
+            <h4>導入ロードマップ + 次のステップ（5分）</h4>
+            <p>段階的な移行計画とPhase 1の具体的なアクション</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential<span></span></div>
+  </div>
+
+  <!-- Slide 3: Section - 課題確認 -->
+  <div class="slide slide-section" id="slide-3">
+    <div class="section-num">01</div>
+    <h2>御社の課題</h2>
+    <p>現状の業務課題とAI基盤整備のニーズ</p>
+    <div class="slide-footer">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 4: Current Challenges -->
+  <div class="slide slide-content" id="slide-4">
+    <h2>現状の課題認識</h2>
+    <div class="slide-subtitle">ヒアリングに基づく御社の主要課題</div>
+    <div class="grid-2" style="align-items:start;">
+      <div>
+        <div class="problem-item">
+          <div class="problem-icon red">⚠️</div>
+          <div class="problem-text">
+            <h4>ドキュメント管理の分散</h4>
+            <p>オンプレファイルサーバー + メールに文書が散在。検索性・アクセス管理が不十分で、ガバナンスリスクあり。</p>
+          </div>
+        </div>
+        <div class="problem-item">
+          <div class="problem-icon orange">⏰</div>
+          <div class="problem-text">
+            <h4>契約書レビューの工数</h4>
+            <p>法務部門の手動チェックに1件あたり平均2〜3時間。条項の見落としリスクも存在。</p>
+          </div>
+        </div>
+        <div class="problem-item">
+          <div class="problem-icon orange">📋</div>
+          <div class="problem-text">
+            <h4>稟議の承認遅延</h4>
+            <p>紙・メールベースの承認フローで、承認に平均5営業日。承認状況の可視化も困難。</p>
+          </div>
+        </div>
+        <div class="problem-item">
+          <div class="problem-icon blue">💬</div>
+          <div class="problem-text">
+            <h4>社内問い合わせの負荷</h4>
+            <p>同じ質問への繰り返し回答で、管理部門の工数が逼迫。ナレッジが属人化。</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card highlight" style="margin-bottom:20px;">
+          <div class="card-icon">🎯</div>
+          <h3>御社のゴール</h3>
+          <p style="font-size:15px; line-height:1.8;">
+            『全社でAIを活用した業務効率化を進めたいが、<strong>まず基盤を整えたい</strong>』
+          </p>
+          <p style="margin-top:16px; font-size:13px; color:var(--gray-600);">
+            → 基盤＝コンテンツ基盤の整備 + セキュアなAI活用環境の構築
+          </p>
+        </div>
+        <div class="card">
+          <h3>3つのユースケース候補</h3>
+          <ul>
+            <li><strong>契約書の条項チェック自動化</strong> ← 本日デモ</li>
+            <li>稟議書の承認フロー自動化</li>
+            <li>社内問い合わせ対応のAI化</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 5: Section - Demo -->
+  <div class="slide slide-section" id="slide-5">
+    <div class="section-num">02</div>
+    <h2>デモ</h2>
+    <p>契約書AI条項チェックシステム（PoC）</p>
+    <div class="slide-footer">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 6: Demo Overview -->
+  <div class="slide slide-content" id="slide-6">
+    <h2>デモの全体像</h2>
+    <div class="slide-subtitle">Box AI を活用した契約書レビューの自動化フロー</div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+      <div class="grid-3" style="margin-bottom:24px;">
+        <div class="card">
+          <div class="card-tag box">Box Content</div>
+          <div class="card-icon">📄</div>
+          <h3>Step 1: 契約書の格納</h3>
+          <p>営業が契約書PDFをBoxにアップロード。7段階の権限設定でセキュアに管理。</p>
+        </div>
+        <div class="card highlight">
+          <div class="card-tag box">Box AI</div>
+          <div class="card-icon">🤖</div>
+          <h3>Step 2: AI自動レビュー</h3>
+          <p>Box AI が8つの観点で条項を分析。リスクレベル判定、構造化データ抽出を自動実行。</p>
+        </div>
+        <div class="card">
+          <div class="card-tag box">Box Metadata</div>
+          <div class="card-icon">🏷️</div>
+          <h3>Step 3: 結果の記録</h3>
+          <p>レビュー結果をメタデータとして書戻し。監査証跡を自動生成、横断検索に活用。</p>
+        </div>
+      </div>
+      <div class="card" style="text-align:center; padding:16px;">
+        <p style="font-size:14px; color:var(--gray-600);">
+          <strong>ポイント：</strong>契約書の内容はBox AIの境界内で処理され、外部に漏洩しません。
+          保険業界に求められるセキュリティ要件を満たしながら、AI活用を実現します。
+        </p>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 7: Demo screenshot placeholder -->
+  <div class="slide slide-content" id="slide-7">
+    <h2>ライブデモ</h2>
+    <div class="slide-subtitle">実際のシステムに切り替えてデモンストレーションを行います</div>
+    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+      <div style="text-align:center;">
+        <div style="font-size:80px; margin-bottom:24px;">🖥️</div>
+        <h3 style="font-size:24px; margin-bottom:16px;">デモアプリに切り替え</h3>
+        <p style="font-size:16px; color:var(--gray-600); max-width:600px; line-height:1.8;">
+          契約書AIレビューシステムのデモ環境を開き、<br>
+          実際の契約書レビューフローをお見せします。
+        </p>
+        <div style="margin-top:32px; display:flex; gap:16px; justify-content:center;">
+          <div class="card" style="padding:12px 20px; display:inline-block;">
+            <strong>①</strong> 契約書の選択・アップロード
+          </div>
+          <div class="card" style="padding:12px 20px; display:inline-block;">
+            <strong>②</strong> AIレビューの実行
+          </div>
+          <div class="card" style="padding:12px 20px; display:inline-block;">
+            <strong>③</strong> リスク評価の確認
+          </div>
+          <div class="card" style="padding:12px 20px; display:inline-block;">
+            <strong>④</strong> Metadata書戻し
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 8: Section - Architecture -->
+  <div class="slide slide-section" id="slide-8">
+    <div class="section-num">03</div>
+    <h2>アーキテクチャ</h2>
+    <p>Box + 外部AI の最適な組み合わせ</p>
+    <div class="slide-footer">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 9: Architecture Overview -->
+  <div class="slide slide-content" id="slide-9">
+    <h2>ソリューション全体像</h2>
+    <div class="slide-subtitle">Box を「コンテンツの源泉」として中核に据え、適材適所でAI技術を組み合わせ</div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:16px;justify-content:center;">
+      <div class="arch-box box-platform">
+        <div class="arch-label">BOX PLATFORM（中核）</div>
+        <div class="arch-items">
+          <div class="arch-item blue">Box Content<br><small>安全な文書管理</small></div>
+          <div class="arch-item blue">Box AI<br><small>条項分析・QA</small></div>
+          <div class="arch-item blue">Box Metadata<br><small>構造化データ</small></div>
+          <div class="arch-item blue">Box Shield<br><small>情報漏洩防止</small></div>
+          <div class="arch-item blue">Box Relay<br><small>承認ワークフロー</small></div>
+          <div class="arch-item blue">Box Sign<br><small>電子署名</small></div>
+        </div>
+      </div>
+      <div class="arch-flow-arrow">⬍ Box API / Webhook</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="arch-box" style="border-color:#7B1FA2;">
+          <div class="arch-label" style="color:#7B1FA2;">アプリケーション層</div>
+          <div class="arch-items">
+            <div class="arch-item">契約書レビューUI</div>
+            <div class="arch-item">MCP Server</div>
+            <div class="arch-item">ガバナンスエンジン</div>
+          </div>
+        </div>
+        <div class="arch-box external-ai">
+          <div class="arch-label">外部AI / 連携（補完）</div>
+          <div class="arch-items">
+            <div class="arch-item yellow">Claude / GPT<br><small>高度な推論</small></div>
+            <div class="arch-item yellow">RAG Pipeline<br><small>全社ナレッジ</small></div>
+            <div class="arch-item">Slack / Teams<br><small>通知・チャット</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 10: Box vs External AI -->
+  <div class="slide slide-content" id="slide-10">
+    <h2>Box単体 vs 外部AI の使い分け</h2>
+    <div class="slide-subtitle">セキュリティと機能性のバランスを最適化</div>
+    <div style="flex:1;">
+      <table class="slide-table">
+        <thead>
+          <tr>
+            <th>ユースケース</th>
+            <th>実現方式</th>
+            <th>技術選定の根拠</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>契約書の条項チェック</strong></td>
+            <td><span class="badge box">Box AI</span></td>
+            <td>契約書の内容がBox外に出ない。AI Ask + Extract Structured でカバー可能。</td>
+          </tr>
+          <tr>
+            <td><strong>構造化データ抽出</strong></td>
+            <td><span class="badge box">Box AI</span></td>
+            <td>Box AI Extract Structured API で日本語フィールドも正確に抽出。</td>
+          </tr>
+          <tr>
+            <td><strong>ガバナンス検査</strong></td>
+            <td><span class="badge both">Box Shield + カスタム</span></td>
+            <td>標準PIIはBox Shield、保険業界固有のルールはカスタムエンジンで補完。</td>
+          </tr>
+          <tr>
+            <td><strong>稟議承認フロー</strong></td>
+            <td><span class="badge box">Box Relay</span></td>
+            <td>ノーコードで承認フロー構築可能。複雑な分岐はWebhookで拡張。</td>
+          </tr>
+          <tr>
+            <td><strong>全社ナレッジ検索</strong></td>
+            <td><span class="badge ext">外部RAG</span></td>
+            <td>部門横断の意味検索・対話にはRAG基盤が必要。Box APIでコンテンツを安全に取得。</td>
+          </tr>
+          <tr>
+            <td><strong>社内問い合わせBot</strong></td>
+            <td><span class="badge ext">LLM + Box API</span></td>
+            <td>対話型UIには外部LLMが必要。MCP経由でBoxコンテンツを参照し回答生成。</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="card highlight" style="margin-top:20px; padding:16px 20px;">
+        <p style="font-size:14px;">
+          <strong>設計方針：</strong>
+          機密性の高い文書処理はBox AI内で完結させ、対話・推論など高度なAI機能が必要な場面でのみ外部LLMを補完的に活用。
+          データの安全性を最優先としつつ、最大限のAI価値を引き出す構成です。
+        </p>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 11: Why Box -->
+  <div class="slide slide-content" id="slide-11">
+    <h2>なぜBoxを中核に据えるのか</h2>
+    <div class="slide-subtitle">保険業界の要件に応える4つの理由</div>
+    <div class="grid-2" style="align-items:start;">
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-icon">🔐</div>
+        <h3>1. セキュリティ・コンプライアンス</h3>
+        <ul>
+          <li>FedRAMP、ISO27001、SOC2 Type II 認証</li>
+          <li>保険業界のガイドラインに準拠</li>
+          <li>7段階のきめ細かなアクセス権限</li>
+          <li>Box Shield による異常検知・DLP</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-icon">🤖</div>
+        <h3>2. AI機能のネイティブ内蔵</h3>
+        <ul>
+          <li>Box AI はコンテンツの境界内で処理</li>
+          <li>契約書のテキストが外部に漏洩しない</li>
+          <li>追加のAIインフラ構築が不要</li>
+          <li>モデルのアップグレードも自動</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>3. メタデータ駆動の管理</h3>
+        <ul>
+          <li>AIレビュー結果を構造化メタデータに保存</li>
+          <li>Metadata Query API で横断分析</li>
+          <li>監査証跡の自動生成</li>
+          <li>リテンションポリシーとの連動</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔄</div>
+        <h3>4. エンドツーエンドの統合</h3>
+        <ul>
+          <li>Box Relay で承認フロー自動化</li>
+          <li>Box Sign で電子署名まで完結</li>
+          <li>1,500+ のアプリ連携</li>
+          <li>API-first で柔軟な拡張が可能</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 12: Data Migration -->
+  <div class="slide slide-content" id="slide-12">
+    <h2>データ移行・連携動線</h2>
+    <div class="slide-subtitle">オンプレミスからBoxへの段階的移行アプローチ</div>
+    <div class="grid-2" style="align-items:start;">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <h3>移行元と移行先の整理</h3>
+          <table class="slide-table" style="font-size:13px;">
+            <thead><tr><th>現在の格納先</th><th>移行先</th><th>方式</th></tr></thead>
+            <tbody>
+              <tr><td>オンプレファイルサーバー</td><td>Box</td><td>Box Shuttle（一括移行）</td></tr>
+              <tr><td>メール添付</td><td>Box</td><td>Outlook連携 / 手動</td></tr>
+              <tr><td>各部門PC内</td><td>Box Drive</td><td>Box Drive同期</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Boxにデータを集めるメリット</h3>
+          <ul>
+            <li>分散していた文書を一元管理 → 検索性向上</li>
+            <li>Box AI の分析対象が広がり、AI精度向上</li>
+            <li>統一的なアクセス権限管理</li>
+            <li>監査ログ・リテンション一元化</li>
+            <li>1つのAPIで全文書にアクセス可能</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card highlight">
+          <h3>移行のリスク軽減策</h3>
+          <ul>
+            <li>Phase 1 で法務部門のみ先行移行（パイロット）</li>
+            <li>既存ファイルサーバーは一定期間並行運用</li>
+            <li>Box Shuttle で権限・メタデータも自動移行</li>
+            <li>ユーザー教育はe-Learning + ハンズオン</li>
+            <li>移行後30日間のサポート体制を確保</li>
+          </ul>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="grid-3" style="gap:12px;">
+            <div class="big-stat">
+              <div class="big-num">3,000</div>
+              <div class="big-label">対象ユーザー数</div>
+            </div>
+            <div class="big-stat">
+              <div class="big-num">〜2TB</div>
+              <div class="big-label">想定移行データ量</div>
+            </div>
+            <div class="big-stat">
+              <div class="big-num">2-4週</div>
+              <div class="big-label">移行所要期間</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 13: Section - Roadmap -->
+  <div class="slide slide-section" id="slide-13">
+    <div class="section-num">04</div>
+    <h2>導入ロードマップ</h2>
+    <p>段階的なアプローチで確実に成果を実現</p>
+    <div class="slide-footer">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 14: Timeline -->
+  <div class="slide slide-content" id="slide-14">
+    <h2>導入ロードマップ</h2>
+    <div class="slide-subtitle">3フェーズで段階的に展開し、各フェーズで確実にROIを確認</div>
+    <div class="timeline">
+      <div class="timeline-card">
+        <div class="phase-badge">Phase 1（1-2ヶ月）</div>
+        <h4>基盤構築 + パイロット</h4>
+        <ul>
+          <li>Box Enterprise 環境構築</li>
+          <li>SSO / Active Directory連携</li>
+          <li>フォルダ構造・権限設計</li>
+          <li>法務部門の契約書を先行移行</li>
+          <li>メタデータテンプレート定義</li>
+          <li>契約書AIレビューのPoC実施</li>
+        </ul>
+      </div>
+      <div class="timeline-card" style="border-color:var(--box-blue);">
+        <div class="phase-badge">Phase 2（2-4ヶ月）</div>
+        <h4>AI活用・ワークフロー構築</h4>
+        <ul>
+          <li>契約書AIレビューの本番導入</li>
+          <li>ガバナンスルール策定・適用</li>
+          <li>稟議承認フロー（Box Relay）</li>
+          <li>全社への段階的移行開始</li>
+          <li>効果測定・KPI設定</li>
+          <li>ユーザートレーニング</li>
+        </ul>
+      </div>
+      <div class="timeline-card">
+        <div class="phase-badge">Phase 3（4-6ヶ月）</div>
+        <h4>全社展開・高度化</h4>
+        <ul>
+          <li>全部門への展開完了</li>
+          <li>社内問い合わせAIBot構築</li>
+          <li>RAGによるナレッジ検索</li>
+          <li>Box Sign 電子署名導入</li>
+          <li>Box Shield 高度なDLP設定</li>
+          <li>ROI報告・次年度計画</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 15: Expected ROI -->
+  <div class="slide slide-content" id="slide-15">
+    <h2>期待される効果</h2>
+    <div class="slide-subtitle">保険業界のお客様事例に基づく想定効果</div>
+    <div class="grid-2" style="align-items:start;">
+      <div>
+        <div class="grid-2" style="gap:16px; margin-bottom:20px;">
+          <div class="big-stat card">
+            <div class="big-num">70%</div>
+            <div class="big-label">契約書レビュー時間の短縮</div>
+          </div>
+          <div class="big-stat card">
+            <div class="big-num">80%</div>
+            <div class="big-label">稟議承認リードタイムの短縮</div>
+          </div>
+          <div class="big-stat card">
+            <div class="big-num">60%</div>
+            <div class="big-label">社内問い合わせ対応の削減</div>
+          </div>
+          <div class="big-stat card">
+            <div class="big-num">99.9%</div>
+            <div class="big-label">条項見落としの防止率</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card highlight" style="margin-bottom:16px;">
+          <h3>定量効果（年間試算）</h3>
+          <ul>
+            <li>契約書レビュー: 2,000件 × 2h削減 = <strong>年間4,000時間削減</strong></li>
+            <li>稟議承認: 平均5日→1日 = <strong>意思決定の4倍速化</strong></li>
+            <li>問い合わせ対応: 月200件 × 0.5h = <strong>年間1,200時間削減</strong></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>定性効果</h3>
+          <ul>
+            <li>リスク条項の見落とし防止による<strong>法的リスク低減</strong></li>
+            <li>コンプライアンス対応の<strong>監査証跡自動化</strong></li>
+            <li>全社の<strong>AI活用リテラシー向上</strong></li>
+            <li>法務部門が<strong>戦略業務に集中</strong>できる体制構築</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Slide 16: Next Steps -->
+  <div class="slide slide-cover" id="slide-16">
+    <div class="cover-badge">NEXT STEPS</div>
+    <h1>次のステップ</h1>
+    <div class="cover-sub" style="text-align:left; max-width:600px;">
+      <div style="margin-bottom:16px;">1. 本日のフィードバック・追加ご質問の整理</div>
+      <div style="margin-bottom:16px;">2. PoC環境のご提供（2週間の無償トライアル）</div>
+      <div style="margin-bottom:16px;">3. 御社の契約書サンプルでの検証</div>
+      <div>4. Phase 1 詳細スコープのご提案</div>
+    </div>
+    <div style="margin-top:48px; opacity:0.6; font-size:14px;">
+      ご質問・ご不明点がございましたら、お気軽にお申し付けください。
+    </div>
+    <div class="slide-footer">Box株式会社 | Confidential</div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav-controls">
+    <button class="nav-btn" onclick="prevSlide()">←</button>
+    <button class="nav-btn" onclick="nextSlide()">→</button>
+  </div>
+  <div class="slide-counter" id="slide-counter">1 / 16</div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 16;
+
+    function showSlide(n) {
+      document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+      document.getElementById(`slide-${n}`).classList.add('active');
+      document.getElementById('slide-counter').textContent = `${n} / ${totalSlides}`;
+      currentSlide = n;
+    }
+
+    function nextSlide() { if (currentSlide < totalSlides) showSlide(currentSlide + 1); }
+    function prevSlide() { if (currentSlide > 1) showSlide(currentSlide - 1); }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+    });
+  </script>
+</body>
+</html>
