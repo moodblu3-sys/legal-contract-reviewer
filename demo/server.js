@@ -2,6 +2,7 @@ import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { createServer } from 'http';
+import Anthropic from '@anthropic-ai/sdk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -332,39 +333,100 @@ app.post('/api/ringi/:id/submit', (req, res) => {
 
 // ── AI Ask API ──
 
-app.post('/api/ai-ask', (req, res) => {
-  const { question } = req.body;
-  const knowledgeBase = [
-    {
-      keywords: ['損害賠償', '賠償', '責任'],
-      answer: '当社の契約書における損害賠償条項を確認しました。\n\n■ ABC損害保険との業務委託契約（CTR-2024-001）\n・第15条にて、受託者は「一切の損害を賠償する」と規定されています\n・上限額の定めがないため、リスクが高い状況です\n・業界標準では委託料の12ヶ月分を上限とするのが一般的です\n\n■ 推奨アクション\n損害賠償上限の設定と、間接損害の免責条項の追加を推奨します。',
-      citations: ['業務委託基本契約書 第15条（損害賠償）', '契約管理ガイドライン 第4章']
-    },
-    {
-      keywords: ['解約', '解除', '終了'],
-      answer: '契約の解約・解除条件についてお調べしました。\n\n■ ABC損害保険との業務委託契約\n・委託者は30日前通知で無条件解除可能（第20条）\n・受託者側には同等の解除権なし\n\n■ XYZテクノロジーとの保守契約\n・中途解約時は残期間分の50%が違約金（第10条）\n・解約通知期間は90日前\n\nいずれの契約も、受託者側の解除権強化を推奨します。',
-      citations: ['業務委託基本契約書 第20条（契約解除）', 'システム保守契約書 第10条（中途解約）']
-    },
-    {
-      keywords: ['秘密保持', 'NDA', '機密'],
-      answer: '秘密保持に関する条項を確認しました。\n\nABC損害保険との契約では、秘密保持義務の存続期間が契約終了後10年間と設定されています。これは業界標準（3〜5年）と比較して過度に長期であり、交渉による短縮を推奨します。',
-      citations: ['業務委託基本契約書 第8条（秘密保持）']
-    }
-  ];
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  if (question) {
-    const matched = knowledgeBase.find(kb =>
-      kb.keywords.some(kw => question.includes(kw))
-    );
-    if (matched) {
-      return res.json({ answer: matched.answer, citations: matched.citations });
-    }
+const CONTRACT_CONTEXT = `
+あなたは企業の法務・契約管理AIアシスタントです。以下の契約書データベースを参照して、ユーザーの質問に日本語で回答してください。
+回答はBox AIが社内ドキュメントを横断検索して生成した形式で、具体的な条項番号・契約書名を引用してください。
+
+## 管理中の契約書一覧
+
+### CTR-2024-001: 業務委託基本契約書_ABC損害保険
+- 相手方: ABC損害保険株式会社
+- 種別: 業務委託契約
+- 金額: 月額3,500,000円（税別）
+- 契約期間: 2025年1月1日〜2025年12月31日（自動更新あり）
+- リスク評価: 高（スコア78/100）
+- 主要リスク条項:
+  - 第15条（損害賠償）: 上限額の定めなし、「一切の損害を賠償する」—受託者に極めて不利
+  - 第20条（契約解除）: 委託者は30日前通知で理由なく解除可能、受託者には同等権利なし
+  - 第12条（知的財産権）: 業務過程の一切の知財が委託者に帰属、既存ツールも対象の可能性
+  - 第8条（秘密保持）: 秘密保持期間が契約終了後10年（業界標準は3〜5年）
+  - 第3条（契約期間）: 更新拒否に60日前通知が必要
+
+### CTR-2024-002: システム保守契約書_XYZテクノロジー
+- 相手方: XYZテクノロジー株式会社
+- 種別: システム保守契約
+- 金額: 月額800,000円（税別）
+- 契約期間: 2025年4月1日〜2026年3月31日（自動更新あり）
+- リスク評価: 中（スコア52/100）
+- 主要リスク条項:
+  - 第5条（保守業務の内容）: SLA定義なし、障害対応時間・RTO・稼働率保証の記載なし
+  - 第4条（保守対象）: 保守範囲の記述が抽象的
+  - 第10条（中途解約）: 残期間分の50%が違約金、解約通知90日前
+
+### CTR-2024-003: 秘密保持契約書_DEFコンサルティング
+- 相手方: DEFコンサルティング株式会社
+- 種別: 秘密保持契約（NDA）
+- ステータス: レビュー済み
+
+## 社内規程（参照用）
+- 契約管理ガイドライン: 損害賠償上限は委託料12ヶ月分が標準
+- 情報セキュリティポリシー: 個人情報・機密情報の取扱い規定
+- IT投資管理規程: IT投資の承認フロー（500万円超は統括部長承認）
+`;
+
+app.post('/api/ai-ask', async (req, res) => {
+  const { question } = req.body;
+  if (!question) {
+    return res.status(400).json({ error: 'question is required' });
   }
 
-  res.json({
-    answer: 'Box AI が社内ドキュメントを分析した結果をお伝えします。ご質問の内容に関連する契約書・社内規程を参照し、以下の回答を生成しました。',
-    citations: ['業務委託基本契約書 第15条', '社内規程集 第3章']
-  });
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.json({
+      answer: 'Box AI が社内ドキュメントを分析した結果をお伝えします。（デモモード: ANTHROPIC_API_KEY 未設定のため固定応答）\n\nご質問の内容に関連する契約書・社内規程を参照し、以下の回答を生成しました。\n\n損害賠償条項に関しては、CTR-2024-001の第15条で上限額の定めがなく、リスクが高い状態です。交渉による修正を推奨します。',
+      citations: ['業務委託基本契約書 第15条（損害賠償）', '社内規程集 第3章']
+    });
+  }
+
+  try {
+    const stream = anthropic.messages.stream({
+      model: 'claude-opus-4-8',
+      max_tokens: 1024,
+      thinking: { type: 'adaptive' },
+      system: CONTRACT_CONTEXT,
+      messages: [
+        {
+          role: 'user',
+          content: `${question}\n\n回答形式:\n- 簡潔で実務的な回答\n- 具体的な条項番号を引用\n- 推奨アクションがあれば末尾に記載\n- citationsフィールド用の引用リストも最後にJSON形式で出力: {"citations": ["...", "..."]}`
+        }
+      ]
+    });
+
+    const message = await stream.finalMessage();
+    const rawText = message.content
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('');
+
+    // extract optional citations JSON from the end of the response
+    const citationsMatch = rawText.match(/\{"citations":\s*\[([^\]]*)\]\}/);
+    let citations = [];
+    let answer = rawText;
+    if (citationsMatch) {
+      try {
+        citations = JSON.parse(citationsMatch[0]).citations;
+        answer = rawText.slice(0, citationsMatch.index).trim();
+      } catch {
+        // leave answer intact if JSON parse fails
+      }
+    }
+
+    res.json({ answer, citations });
+  } catch (err) {
+    console.error('Claude API error:', err.message);
+    res.status(500).json({ error: 'AI応答の生成に失敗しました', detail: err.message });
+  }
 });
 
 const server = createServer(app);
